@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+docs/_shot_*.html
+*_revised.*
+*_clean.*

@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+title: DossierLens
+message: If you use DossierLens, please cite it and the work it adapts.
+type: software
+authors:
+  - family-names: Pallerla
+    given-names: Chaitanya
+repository-code: https://github.com/Chaitanya-Pallerla/dossierlens
+license: CC-BY-NC-4.0
+version: 1.0.0
+date-released: 2026-10-16
+references:
+  - type: software
+    title: Academic Research Skills for Claude Code
+    authors:
+      - family-names: Wu
+        given-names: Cheng-I
+    repository-code: https://github.com/Imbad0202/academic-research-skills
+    version: 3.23.1
+    license: CC-BY-NC-4.0

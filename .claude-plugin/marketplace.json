@@ -1,0 +1,26 @@
+{
+  "name": "dossierlens",
+  "owner": {
+    "name": "Chaitanya Pallerla",
+    "url": "https://github.com/Chaitanya-Pallerla"
+  },
+  "description": "DossierLens for Claude Code.",
+  "plugins": [
+    {
+      "name": "dossierlens",
+      "source": "./",
+      "description": "Review faculty application packets, industry resumes (ATS) and grant proposals with detailed checklists, line-numbered fixes you can accept, a five-reviewer grant panel, RFA rule checks, a budget calculator, reference and AI-artifact checks, and a funding finder. Works with Claude Code and Codex.",
+      "version": "1.0.0",
+      "license": "CC-BY-NC-4.0",
+      "skills": [
+        "./skills/faculty-packet-review",
+        "./skills/resume-ats-review",
+        "./skills/grant-proposal-review",
+        "./skills/grant-budget",
+        "./skills/reference-ai-check",
+        "./skills/funding-finder",
+        "./skills/dossierlens-app"
+      ]
+    }
+  ]
+}

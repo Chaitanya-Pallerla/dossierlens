@@ -1,0 +1,26 @@
+{
+  "name": "dossierlens",
+  "version": "1.0.0",
+  "description": "Review faculty application packets, industry resumes (ATS) and grant proposals with detailed checklists, line-numbered fixes you can accept, a five-reviewer grant panel, RFA rule checks, a budget calculator, reference and AI-artifact checks, and a funding finder. Works with Claude Code and Codex.",
+  "author": {
+    "name": "Chaitanya Pallerla",
+    "url": "https://github.com/Chaitanya-Pallerla"
+  },
+  "homepage": "https://github.com/Chaitanya-Pallerla/dossierlens",
+  "repository": "https://github.com/Chaitanya-Pallerla/dossierlens",
+  "license": "CC-BY-NC-4.0",
+  "keywords": [
+    "academic-jobs",
+    "faculty-application",
+    "research-statement",
+    "teaching-statement",
+    "cover-letter",
+    "resume",
+    "ats",
+    "grant-writing",
+    "proposal-review",
+    "citations",
+    "ai-detection",
+    "funding"
+  ]
+}

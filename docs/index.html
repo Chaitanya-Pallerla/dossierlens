@@ -1,0 +1,1480 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="DossierLens: review faculty application packets, industry resumes and grant proposals with checklists, highlights and accept-to-apply fixes.">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,"Segoe UI",sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>DossierLens</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: frosted panels over a slow-drifting ink-and-teal wash; statement "paper" left, suggestions/checklist rail right */
+:root{
+  --bg:#EEF2F8; --ink:#16202F; --muted:#586379; --line:rgba(22,32,47,.10);
+  --glass:rgba(255,255,255,.58); --glass-strong:rgba(255,255,255,.80); --glass-line:rgba(255,255,255,.75); --glass-hi:rgba(255,255,255,.9);
+  --paper:rgba(255,255,255,.90); --sunken:rgba(22,32,47,.05); --shadow:rgba(30,50,90,.22);
+  --accent:#2747A8; --accent-2:#0F8A86; --accent-ink:#FFFFFF; --accent-soft:rgba(39,71,168,.12);
+  --ok:#14794A; --ok-soft:rgba(20,121,74,.13); --warn:#A35E00; --warn-soft:rgba(214,140,20,.16); --bad:#B42318; --bad-soft:rgba(180,35,24,.11);
+  --violet:#7D3BD0; --sky:#1C78BD;
+  --blob1:rgba(60,100,220,.30); --blob2:rgba(15,150,140,.24); --blob3:rgba(240,170,60,.20);
+  --hl-a:.26; --badge-l:40%;
+  --f-display:"Newsreader",Georgia,"Times New Roman",serif;
+  --f-ui:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0B0F17; --ink:#E7EBF3; --muted:#9AA5B9; --line:rgba(255,255,255,.09);
+  --glass:rgba(24,31,46,.55); --glass-strong:rgba(28,36,54,.82); --glass-line:rgba(255,255,255,.09); --glass-hi:rgba(255,255,255,.06);
+  --paper:rgba(20,26,39,.88); --sunken:rgba(255,255,255,.05); --shadow:rgba(0,0,0,.55);
+  --accent:#93ACF5; --accent-2:#4FD1C5; --accent-ink:#0B1222; --accent-soft:rgba(147,172,245,.16);
+  --ok:#5CCB91; --ok-soft:rgba(92,203,145,.15); --warn:#E8A94F; --warn-soft:rgba(232,169,79,.15); --bad:#F2877D; --bad-soft:rgba(242,135,125,.14);
+  --violet:#B48CF2; --sky:#6CB8EE;
+  --blob1:rgba(70,100,220,.30); --blob2:rgba(20,160,150,.20); --blob3:rgba(200,130,40,.12);
+  --hl-a:.32; --badge-l:58%; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B0F17; --ink:#E7EBF3; --muted:#9AA5B9; --line:rgba(255,255,255,.09);
+  --glass:rgba(24,31,46,.55); --glass-strong:rgba(28,36,54,.82); --glass-line:rgba(255,255,255,.09); --glass-hi:rgba(255,255,255,.06);
+  --paper:rgba(20,26,39,.88); --sunken:rgba(255,255,255,.05); --shadow:rgba(0,0,0,.55);
+  --accent:#93ACF5; --accent-2:#4FD1C5; --accent-ink:#0B1222; --accent-soft:rgba(147,172,245,.16);
+  --ok:#5CCB91; --ok-soft:rgba(92,203,145,.15); --warn:#E8A94F; --warn-soft:rgba(232,169,79,.15); --bad:#F2877D; --bad-soft:rgba(242,135,125,.14);
+  --violet:#B48CF2; --sky:#6CB8EE;
+  --blob1:rgba(70,100,220,.30); --blob2:rgba(20,160,150,.20); --blob3:rgba(200,130,40,.12);
+  --hl-a:.32; --badge-l:58%; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-ui);font-size:14px;line-height:1.5;min-height:100%}
+.bgfx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bgfx i{position:absolute;border-radius:50%;filter:blur(70px);animation:drift 28s ease-in-out infinite alternate}
+.bgfx i:nth-child(1){width:55vw;height:55vw;left:-12vw;top:-18vw;background:var(--blob1)}
+.bgfx i:nth-child(2){width:45vw;height:45vw;right:-10vw;top:20vh;background:var(--blob2);animation-duration:34s;animation-delay:-8s}
+.bgfx i:nth-child(3){width:40vw;height:40vw;left:25vw;bottom:-20vw;background:var(--blob3);animation-duration:40s;animation-delay:-16s}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(4vw,3vh) scale(1.08)}100%{transform:translate(-3vw,6vh) scale(.95)}}
+.wrap{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding-block:22px 70px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+h1,h2,h3{font-family:var(--f-display);font-weight:600;text-wrap:balance;margin:0}
+h1{font-size:34px;letter-spacing:-.015em}
+h2{font-size:24px}
+h3{font-size:17px}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+.muted{color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+button,select,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.glass,.panel{background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(150%);backdrop-filter:blur(18px) saturate(150%);border:1px solid var(--glass-line);box-shadow:inset 0 1px 0 var(--glass-hi),0 12px 32px -16px var(--shadow);border-radius:16px}
+.panel{padding:18px}
+.btn{border:1px solid var(--glass-line);background:var(--glass-strong);border-radius:10px;padding:8px 13px;font-weight:600;font-size:13px;display:inline-flex;align-items:center;gap:6px;transition:transform .15s,box-shadow .15s,border-color .15s;box-shadow:0 4px 14px -8px var(--shadow)}
+.btn:hover{transform:translateY(-1px);border-color:var(--accent)}
+.btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:var(--accent-ink);border-color:transparent;box-shadow:0 8px 20px -10px var(--accent)}
+.btn.primary:hover{box-shadow:0 10px 26px -10px var(--accent)}
+.btn:disabled{opacity:.5;cursor:default;transform:none}
+.btn.small{padding:4px 10px;font-size:12px;border-radius:8px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+
+.top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-end}
+.top p{margin:6px 0 0;max-width:64ch;color:var(--muted)}
+.top h1 span{background:linear-gradient(120deg,var(--accent),var(--accent-2));-webkit-background-clip:text;background-clip:text;color:transparent}
+
+details.pos>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px}
+details.pos>summary::-webkit-details-marker{display:none}
+details.pos>summary .chev{transition:transform .2s}
+details.pos[open]>summary .chev{transform:rotate(90deg)}
+.posgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}
+.posgrid label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--muted)}
+.posgrid .full{grid-column:1/-1}
+input[type=text],textarea,select{background:var(--glass-strong);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%;min-width:0}
+textarea{resize:vertical;line-height:1.5}
+
+.strip{display:grid;grid-template-columns:210px repeat(var(--n,5),minmax(0,1fr));gap:10px}
+.pkt{display:grid;align-content:center;gap:2px;padding:14px 16px;border-radius:16px;background:linear-gradient(140deg,var(--accent),var(--accent-2));color:var(--accent-ink);box-shadow:0 14px 30px -14px var(--accent)}
+.pkt .big{font-family:var(--f-mono);font-size:38px;font-weight:600;line-height:1}
+.pkt .eyebrow{color:inherit;opacity:.8}
+.dtab{text-align:left;padding:11px 13px;display:grid;gap:6px;min-width:0;transition:transform .18s,box-shadow .18s,border-color .18s}
+.dtab:hover{transform:translateY(-2px)}
+.dtab[aria-selected="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent),0 14px 30px -16px var(--accent)}
+.dtab .name{font-weight:700;font-size:13px}
+.dtab .meta{display:flex;justify-content:space-between;align-items:baseline;gap:6px;font-size:12px;color:var(--muted)}
+.dtab .score{font-family:var(--f-mono);font-size:21px;font-weight:600;color:var(--ink)}
+.bar{height:6px;border-radius:4px;background:var(--sunken);overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--sunken);color:var(--muted);white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)} .pill.acc{background:var(--accent-soft);color:var(--accent)}
+
+.notice{border-left:3px solid var(--warn);background:var(--warn-soft);padding:10px 12px;border-radius:10px;font-size:13px;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.notice.info{border-color:var(--accent);background:var(--accent-soft)}
+.notice.bad{border-color:var(--bad);background:var(--bad-soft)}
+.notice.ok{border-color:var(--ok);background:var(--ok-soft)}
+
+.dochead{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:22px;align-items:center}
+.ring{width:104px;height:104px;position:relative}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .v{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-mono);font-size:28px;font-weight:600;text-align:center}
+.ring .v small{display:block;font-size:10px;font-family:var(--f-ui);color:var(--muted);font-weight:600;margin-top:-4px}
+.subs{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:9px 18px}
+.sub{display:grid;gap:4px}
+.sub .l{display:flex;justify-content:space-between;font-size:12px;gap:6px}
+.sub .l b{font-family:var(--f-mono)}
+.sub .bar>i.lo{background:var(--bad)} .sub .bar>i.mid{background:var(--warn)} .sub .bar>i.hi{background:var(--ok)}
+
+.review{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:16px;align-items:start}
+.paper{background:var(--paper);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--glass-line);border-radius:16px;box-shadow:0 18px 40px -22px var(--shadow);padding:28px 32px;font-family:var(--f-display);font-size:17px;line-height:1.78;min-width:0}
+.paper p{margin:0 0 1em;overflow-wrap:anywhere}
+.toggles{display:flex;gap:6px;flex-wrap:wrap;font-size:12px}
+.tg{border:1px solid var(--glass-line);border-radius:99px;padding:4px 11px;background:var(--glass);font-size:12px;font-weight:600;color:var(--muted);transition:background .15s,color .15s}
+.tg[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);border-color:transparent}
+.s{border-radius:4px;padding:1px 0;cursor:pointer;transition:opacity .2s,background .2s,box-shadow .2s;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.s.hl{background:hsla(var(--h),78%,55%,var(--hl-a))}
+.s.sel{box-shadow:0 0 0 2px var(--accent)}
+.s.added{box-shadow:inset 0 -2px 0 var(--ok);background:var(--ok-soft)}
+.s.flash{animation:flash 1.8s ease-out}
+@keyframes flash{0%{background:var(--ok);box-shadow:0 0 0 6px var(--ok-soft)}100%{}}
+.paper.focus .s:not(.on){opacity:.25;background:none}
+.badge{display:inline-block;font-family:var(--f-mono);font-size:10px;font-weight:600;line-height:1;padding:2px 4px;border-radius:4px;margin-right:3px;vertical-align:2px;color:#fff;background:hsl(var(--h),62%,var(--badge-l))}
+.badge.new{background:var(--ok)}
+.paper.nocolor .s.hl{background:none}
+.paper.nocolor .badge{display:none}
+.u-grammar{text-decoration:underline wavy var(--bad);text-decoration-thickness:1.5px;text-underline-offset:4px}
+.u-unclear{text-decoration:underline dotted var(--warn);text-decoration-thickness:2px;text-underline-offset:4px}
+.u-overpromise{text-decoration:underline double var(--violet);text-underline-offset:4px}
+.u-jd_echo{text-decoration:underline dashed var(--sky);text-decoration-thickness:1.5px;text-underline-offset:4px}
+.u-other{text-decoration:underline solid var(--muted);text-underline-offset:4px}
+.u-hot{background:var(--accent-soft);border-radius:3px}
+.paper.noissues [class*="u-"]{text-decoration:none}
+mark.rep{background:none;color:inherit;box-shadow:inset 0 -2px 0 var(--bad);font-weight:600}
+mark.jdk{background:none;color:inherit;box-shadow:inset 0 -2px 0 var(--sky)}
+mark.dup{background:var(--bad-soft);color:var(--bad);font-weight:700}
+mark.ph{background:var(--warn-soft);color:var(--warn);border-radius:3px;padding:0 2px;font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--muted)}
+.legend span{display:inline-flex;gap:5px;align-items:center}
+.sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+.side{display:grid;gap:12px;position:sticky;top:calc(12px + env(safe-area-inset-top,0px));max-height:calc(100vh - 24px);overflow:auto;min-width:0;padding:2px 4px 12px 2px;scrollbar-width:thin}
+.seg{display:grid;grid-template-columns:1fr 1fr;padding:4px;gap:4px;border-radius:12px}
+.seg button{border:0;border-radius:9px;padding:7px 8px;font-weight:700;font-size:13px;background:none;color:var(--muted);transition:background .2s,color .2s}
+.seg button[aria-selected="true"]{background:var(--glass-strong);color:var(--ink);box-shadow:0 4px 12px -6px var(--shadow)}
+.seg .n{font-family:var(--f-mono);font-size:11px;margin-left:4px;padding:1px 6px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.filters{display:flex;flex-wrap:wrap;gap:5px}
+
+.sug{padding:12px 13px;border-radius:14px;display:grid;gap:8px;transition:transform .2s,box-shadow .2s,opacity .3s;cursor:default}
+.sug:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 var(--glass-hi),0 14px 30px -14px var(--shadow)}
+.sug.hot{border-color:var(--accent)}
+.sug .h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.sug .h .loc{font-family:var(--f-mono);font-size:11px;color:var(--muted);border:0;background:none;padding:0;text-decoration:underline dotted}
+.diff{font-family:var(--f-display);font-size:15px;line-height:1.5;display:grid;gap:4px}
+.diff del{color:var(--bad);text-decoration-color:var(--bad);background:var(--bad-soft);border-radius:4px;padding:1px 4px}
+.diff ins{color:var(--ok);text-decoration:none;background:var(--ok-soft);border-radius:4px;padding:1px 4px}
+.sug .why{font-size:12.5px;color:var(--muted)}
+.sug textarea{font-family:var(--f-display);font-size:14.5px;background:var(--ok-soft);border-color:transparent}
+.sug .acts{display:flex;gap:6px;align-items:center}
+.accept{border:0;border-radius:10px;padding:6px 12px;font-weight:700;font-size:12.5px;background:var(--ok);color:#fff;display:inline-flex;gap:6px;align-items:center;box-shadow:0 6px 16px -8px var(--ok);transition:transform .15s}
+.accept:hover{transform:translateY(-1px) scale(1.03)}
+.accept .tick{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.25);display:grid;place-items:center;font-size:12px}
+.dismiss{border:1px solid var(--line);border-radius:10px;padding:5px 10px;font-weight:600;font-size:12px;background:none;color:var(--muted)}
+.sug.leaving{animation:out .32s ease-in forwards}
+@keyframes out{to{opacity:0;transform:translateX(30px) scale(.96)}}
+.applied{font-size:12.5px;display:grid;gap:4px}
+.applied div{display:flex;gap:6px;align-items:baseline}
+
+.cl{display:grid;gap:4px}
+.ci{display:grid;grid-template-columns:22px minmax(0,1fr);gap:9px;padding:8px;border-radius:10px;border:1px solid transparent;cursor:pointer;text-align:left;background:none;width:100%;transition:background .15s}
+.ci:hover{background:var(--sunken)}
+.ci.on{border-color:var(--accent);background:var(--accent-soft)}
+.box{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;background:hsl(var(--h),62%,var(--badge-l))}
+.box.missing{background:none;border:2px dashed hsl(var(--h),62%,var(--badge-l));color:transparent}
+.box.partial{background:linear-gradient(135deg,hsl(var(--h),62%,var(--badge-l)) 50%,transparent 50%);border:2px solid hsl(var(--h),62%,var(--badge-l))}
+.box.unrev{background:var(--sunken);border:1px solid var(--line)}
+.ci .t{font-size:13px;line-height:1.38}
+.ci .t b{font-family:var(--f-mono);font-size:11px;margin-right:4px}
+.ci .n{font-size:12px;color:var(--muted);margin-top:3px}
+
+.selcard{border:1px solid var(--accent);border-radius:14px;padding:12px;display:grid;gap:8px;font-size:13px}
+.selcard q{font-family:var(--f-display);font-size:15px;quotes:"“" "”"}
+
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+ul.clean{margin:8px 0 0;padding-left:18px;display:grid;gap:6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:2px 8px;background:var(--sunken)}
+.chip b{font-family:var(--f-mono);margin-left:4px}
+.stat{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:13px}
+.stat:first-of-type{border-top:0}
+
+.input-area{display:grid;gap:12px}
+.drop{border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;display:grid;gap:6px;justify-items:center;background:var(--sunken);cursor:pointer;transition:border-color .2s,background .2s}
+.drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.whyme{display:grid;grid-template-columns:auto minmax(0,1fr);gap:14px;align-items:start}
+.stream{font-family:var(--f-mono);font-size:11px;color:var(--muted);max-height:70px;overflow:hidden;white-space:pre-wrap;word-break:break-all}
+.dots::after{content:"";animation:dots 1.4s steps(4) infinite}
+@keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}}
+.modes{display:flex;gap:4px;padding:4px;border-radius:14px;flex-wrap:wrap}
+.modes button{border:0;background:none;border-radius:10px;padding:8px 14px;font-weight:700;font-size:13px;color:var(--muted);transition:background .2s,color .2s}
+.modes button[aria-selected="true"]{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:var(--accent-ink);box-shadow:0 8px 18px -10px var(--accent)}
+.paper{position:relative;padding-left:58px!important}
+.gutter{position:absolute;left:0;top:0;width:44px;height:100%;pointer-events:none;font-family:var(--f-mono);font-size:10.5px;color:var(--muted);user-select:none}
+.gutter span{position:absolute;right:8px;line-height:1;opacity:.75}
+.gutter span.hot{color:var(--accent);opacity:1;font-weight:700}
+.gutter::after{content:"";position:absolute;right:0;top:20px;bottom:20px;width:1px;background:var(--line)}
+.btable{overflow-x:auto;max-width:100%}
+.btable table{border-collapse:collapse;font-size:12.5px;width:100%}
+.btable th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:6px;border-bottom:1px solid var(--line);white-space:nowrap}
+.btable td{padding:5px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+.btable table.sum td{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.btable table.sum td:first-child{font-family:var(--f-ui)}
+.btable tr.sub td{font-weight:700} .btable tr.tot td{font-weight:700;color:var(--accent);border-top:2px solid var(--accent)}
+.bin{padding:5px 7px!important;border-radius:7px!important;font-size:12.5px}
+.bl{display:flex;flex-direction:column;gap:3px;font-size:11.5px;font-weight:600;color:var(--muted)}
+.nowrap{white-space:nowrap}
+.grp{font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--accent);margin:10px 4px 2px}
+.chipx{display:inline-block;font-family:var(--f-mono);font-size:9.5px;font-weight:700;background:var(--bad);color:#fff;border-radius:3px;padding:0 3px;margin:0 1px;vertical-align:1px}
+mark.art{background:var(--bad-soft);color:var(--bad);border-radius:3px;font-weight:600}
+mark.term{background:none;color:inherit;text-decoration:underline dotted var(--warn);text-decoration-thickness:2px;text-underline-offset:3px}
+mark.citeok{background:var(--ok-soft);color:inherit;border-radius:3px}
+mark.citebad{background:var(--bad-soft);color:var(--bad);border-radius:3px;font-weight:600}
+.refrow td:nth-child(2){font-family:var(--f-display);font-size:14px;min-width:260px}
+.vlinks a{font-size:11.5px;margin-right:8px;white-space:nowrap}
+.figgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.fig{display:grid;gap:8px;padding:10px;border-radius:14px}
+.fig img{border-radius:8px;border:1px solid var(--line);background:#fff;max-height:220px;object-fit:contain;width:100%}
+.credits{font-size:12.5px;line-height:1.6;padding:14px 18px;border-top:1px solid var(--line);display:grid;gap:6px;max-width:110ch}
+.credits p{margin:0}
+.credits a{color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--glass-strong);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);border:1px solid var(--glass-line);color:var(--ink);padding:9px 16px;border-radius:12px;font-size:13px;font-weight:600;z-index:20;box-shadow:0 12px 30px -12px var(--shadow);display:flex;gap:10px;align-items:center}
+
+.imp{display:grid;gap:8px}
+.isec{display:grid;grid-template-columns:minmax(0,1fr) 210px;gap:12px;align-items:start;padding:10px 12px;border-radius:12px}
+.isec .pv{font-family:var(--f-display);font-size:14px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+.isec .src{font-size:12px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.isec.skip{opacity:.6}
+
+/* entrance motion: only on first view of a document or a fresh review */
+.anim .rise{animation:rise .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--k,0)*45ms)}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}}
+.anim .bar>i{animation:grow .9s cubic-bezier(.2,.7,.2,1) both}
+@keyframes grow{from{width:0}}
+.anim .ring .fg{animation:draw 1.1s cubic-bezier(.2,.7,.2,1) both}
+@keyframes draw{from{stroke-dashoffset:var(--c)}}
+
+@media (max-width:1080px){
+  .review{grid-template-columns:minmax(0,1fr)}
+  .side{position:static;max-height:none;overflow:visible}
+  .strip{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .cols3{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width:680px){
+  .strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .posgrid{grid-template-columns:minmax(0,1fr)}
+  .dochead{grid-template-columns:auto minmax(0,1fr)}
+  .dochead .acts{grid-column:1/-1}
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .paper{padding:18px 16px;font-size:16px}
+  .isec{grid-template-columns:minmax(0,1fr)}
+  h1{font-size:27px}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+
+<div class="bgfx" aria-hidden="true"><i></i><i></i><i></i></div>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Academic job application review</div>
+      <h1>Dossier<span>Lens</span></h1>
+      <nav class="modes glass" id="modes" role="tablist" aria-label="Review type" style="margin-top:12px;width:max-content;max-width:100%"></nav>
+      <p id="modeBlurb">Upload your packet and job ad. Each statement is scored against its checklist, every sentence is color-linked to the item it covers, and fixes appear beside the text. Tick a fix to apply it.</p>
+    </div>
+    <div class="row">
+      <label class="muted" for="depth" style="font-size:12px">Review depth</label>
+      <select id="depth" style="width:auto">
+        <option value="default">Standard</option>
+        <option value="complex">Thorough (slower)</option>
+      </select>
+      <button class="btn primary" id="reviewAll">Review all statements</button>
+      <button class="btn" id="copyReport">Copy report</button>
+      <button class="btn" id="dlAll">Download all (.zip)</button>
+    </div>
+  </header>
+
+  <div id="exampleBar" class="notice info" hidden>
+    <b>Example loaded.</b> The cover letter, job ad and review below are a made-up sample. Try ticking a suggestion on the right. <button class="btn small" id="clearExample" style="margin-left:6px">Clear example and start</button>
+  </div>
+  <div id="claudeBar" class="notice" hidden></div>
+
+  <div id="stdArea" style="display:grid;gap:18px">
+  <details class="pos panel" id="posPanel">
+    <summary>
+      <div><div class="eyebrow">Step 1</div><h3 id="posHead">Position and job ad</h3></div>
+      <span class="row muted" style="font-size:12px"><span id="posSummary"></span><span class="chev">▸</span></span>
+    </summary>
+    <div class="posgrid">
+      <label><span id="lf1">Position title</span><input type="text" id="jobTitle"></label>
+      <label><span id="lf2">Department</span><input type="text" id="jobDept"></label>
+      <label><span id="lf3">University</span><input type="text" id="jobUniv"></label>
+      <label class="full"><span id="lad">Job advertisement text</span> <span style="font-weight:400" id="ladHint"></span>
+        <textarea id="jobAd" rows="6" placeholder="Paste the job description here. It is used to check fit, keyword echoing, and whether you answer 'why me'."></textarea>
+      </label>
+    </div>
+    <div id="rfaArea"></div>
+  </details>
+
+  <section class="panel" id="bulk" style="display:grid;gap:12px">
+    <div class="row" style="justify-content:space-between">
+      <div><div class="eyebrow" id="upEyebrow">Step 2 · Upload your packet</div><h3 id="upHead">One combined file, several files, or a .zip</h3></div>
+      <span class="muted" style="font-size:12px;max-width:52ch" id="upHint"></span>
+    </div>
+    <label class="drop" id="bulkDrop" for="bulkFile" style="padding:16px"><b>Drop files here or click to choose</b><span class="muted">.docx, .pdf, .txt, .md, or a .zip of them · several at once is fine</span>
+      <input type="file" id="bulkFile" multiple accept=".docx,.pdf,.zip,.txt,.md,application/zip" hidden></label>
+    <div id="bulkMsg"></div>
+    <div id="importPanel"></div>
+  </section>
+
+  <section>
+    <div class="eyebrow" style="margin-bottom:8px" id="step3">Step 3 · Review each statement</div>
+    <div class="strip" id="strip" role="tablist"></div>
+  </section>
+
+  <div id="dup"></div>
+  </div>
+  <main id="doc" class="panel" style="display:grid;gap:18px"></main>
+  <footer class="credits">
+    <p><b>Credit.</b> The References &amp; AI check and the Grant proposal tabs use code and review methods adapted from
+    <a href="https://github.com/Imbad0202/academic-research-skills" target="_blank" rel="noopener">Academic Research Skills</a> (v3.23.1) by Cheng-I Wu,
+    licensed <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>. We modified it for this tool:
+    the uncited-claim detector, acronym check, title-similarity matching, tortured-phrase rule format, post-2024 preprint heuristic and AI-typical word list were rewritten in browser JavaScript and simplified;
+    the figure checklist and the five-reviewer panel (field analyst, program officer, methodology, domain, perspective, Devil's Advocate, editorial synthesizer) were condensed and adapted from journal papers to grant proposals.
+    Live database lookups (Semantic Scholar, Crossref, OpenAlex, arXiv) from the original are not included.</p>
+    <p class="muted">Tortured-phrase examples: Cabanac, Labbé &amp; Magazinov (2021), “Tortured phrases: A dubious writing style emerging in science,” <a href="https://arxiv.org/abs/2107.06751" target="_blank" rel="noopener">arXiv:2107.06751</a>. Adapted material is for noncommercial use under the license above.</p>
+  </footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="provider.js"></script>
+<script src="checklists.js"></script>
+<script src="aiscan.js"></script>
+<script src="budget.js"></script>
+<script src="compare.js"></script>
+<script src="funding.js"></script>
+<script src="ars.js"></script>
+<script>
+/* ---------------- modes (checklists live in checklists.js) ---------------- */
+let MODE="faculty",DOCS=MODES.faculty.docs,DOCMAP={},SUBSCORES=MODES.faculty.subs;
+function setModeVars(m){MODE=m;if(MODES[m]){DOCS=MODES[m].docs;SUBSCORES=MODES[m].subs}DOCMAP=Object.fromEntries(DOCS.map(d=>[d.key,d]))}
+setModeVars("faculty");
+const MODE_TABS=[["faculty","Faculty packet"],["resume","Industry resume"],["grant","Grant proposal"],["refs","References & AI check"],["funding","Funding finder"]];
+const MODE_BLURB={faculty:"Upload your packet and job ad. Each statement is scored against its checklist, every sentence is color-linked to the item it covers, and fixes appear beside the text. Tick a fix to apply it.",
+ resume:"Check an industry resume against an ATS-friendly checklist and a strong-format checklist, matched to a job description. Tick fixes to apply them, then download the corrected file.",
+ grant:"Score a proposal against reviewer criteria, flag overpromising on expertise, timeline and cost, review its figures, build a budget, and compare it with recently funded proposals.",
+ funding:"Open grant calls and deadlines from federal agencies, foundations, big-tech research programs and international funders, refreshed every morning. Filter by country, funder and combined fields of study.",
+ refs:"Find likely fabricated references, uncited or missing citations, and copy-paste artifacts left by AI chat tools (hidden characters, oaicite markers, utm_source links, Markdown)."};
+const ISSUE_TYPES={
+ grammar:{label:"Grammar",cls:"u-grammar",color:"var(--bad)",f:"grammar"},
+ unclear:{label:"Unclear or vague",cls:"u-unclear",color:"var(--warn)",f:"clarity"},
+ overpromise:{label:"Overpromising",cls:"u-overpromise",color:"var(--violet)",f:"over"},
+ jd_echo:{label:"Job-ad echo",cls:"u-jd_echo",color:"var(--sky)",f:"jd"},
+ repetition:{label:"Repetition",cls:"u-other",color:"var(--muted)",f:"clarity"},
+ tone:{label:"Tone",cls:"u-other",color:"var(--muted)",f:"clarity"},
+ formatting:{label:"Formatting",cls:"u-other",color:"var(--muted)",f:"clarity"}};
+const FILTERS=[["all","All"],["grammar","Grammar"],["clarity","Clarity"],["over","Overpromising"],["jd","Job-ad echo"],["add","Missing items"]];
+
+/* ---------------- text utilities ---------------- */
+const STOP=new Set("a about above after again against all also am an and any are as at be because been before being below between both but by can could did do does doing down during each few for from further had has have having he her here hers herself him himself his how i if in into is it its itself just me more most my myself no nor not now of off on once only or other our ours ourselves out over own same she should so some such than that the their theirs them themselves then there these they this those through to too under until up very was we were what when where which while who whom why will with would you your yours yourself yourselves within across using use used via including include includes well may might must one two three new also however thus therefore etc".split(" "));
+const ADGENERIC=new Set("candidate candidates position positions applications application applicants applicant university department required preferred qualifications qualification apply review materials letter statement statements include including ability abilities experience demonstrated successful expected responsibilities responsibility duties appointment tenure track assistant professor faculty submit please contact information equal opportunity employer women minorities veterans disabilities encouraged consideration date begin begins starting start annual salary commensurate".split(" "));
+const HYPE=["revolutionize","revolutionise","revolutionary","transform the","transformative","groundbreaking","ground-breaking","unprecedented","paradigm shift","game-changing","game changer","cutting-edge","cutting edge","world-class","first-ever","first of its kind","eliminate","completely solve","solve the problem of","disrupt","unparalleled","will ensure","guarantee"];
+const VAGUE=["various","several","many aspects","things","a lot of","very","really","in many ways","etc","and so on","some","numerous","passionate","passion"];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const words=t=>(t.toLowerCase().match(/[a-z][a-z'’-]*[a-z]|[a-z]/g)||[]);
+const stem=w=>w.replace(/['’]s$/,"").replace(/(ing|ed|es|s|ly)$/,"").slice(0,8);
+function hash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)}
+const phMark=h=>h.replace(/\[([^\]\n]{1,80})\]/g,'<mark class="ph">[$1]</mark>');
+
+const ABBR=/\b(e\.g|i\.e|et al|Dr|Mr|Mrs|Ms|Prof|vs|Fig|Figs|No|approx|St|Jr|Sr|cf|ca|Inc|Ltd|Co|Dept|Univ|U\.S|Ph\.D|M\.S|B\.S|M\.Sc|B\.Sc)\./g;
+function splitDoc(text){
+  const paras=text.replace(/\r/g,"").split(/\n+/).map(p=>p.replace(/\s+/g," ").trim()).filter(Boolean);
+  const out=[];let idx=0;
+  paras.forEach((p,pi)=>{
+    const prot=p.replace(ABBR,m=>m.replace(/\./g,"\u2024"));
+    const parts=prot.split(/(?<=[.!?]["”’')\]]?)\s+(?=["“‘(\[]?[A-Z0-9])/);
+    parts.forEach(s=>{s=s.replace(/\u2024/g,".").trim();if(s)out.push({i:idx++,p:pi,t:s})});
+  });
+  return out;
+}
+function rebuild(model){let out="",lastP=null;model.forEach(s=>{if(lastP===null)out=s.t;else out+=(s.p!==lastP?"\n":" ")+s.t;lastP=s.p});return out}
+function ngrams(ws,n){const a=[];for(let i=0;i+n<=ws.length;i++)a.push(ws.slice(i,i+n).join(" "));return a}
+
+/* ---------------- local (instant) checks ---------------- */
+function jdTerms(ad){
+  const ws=words(ad).filter(w=>w.length>3&&!STOP.has(w)&&!ADGENERIC.has(w));
+  const c={};ws.forEach(w=>{const k=stem(w);c[k]=c[k]||{w,n:0};c[k].n++});
+  return Object.values(c).sort((a,b)=>b.n-a.n).slice(0,30);
+}
+function localChecks(doc,text,job){
+  const sents=splitDoc(text);
+  const ws=words(text);const n=ws.length;
+  const content=ws.filter(w=>w.length>3&&!STOP.has(w));
+  const counts={};content.forEach(w=>{const k=stem(w);counts[k]=counts[k]||{w,n:0};counts[k].n++});
+  const thr=Math.max(4,Math.round(n/180));
+  const overused=Object.values(counts).filter(x=>x.n>=thr).sort((a,b)=>b.n-a.n).slice(0,14);
+  const doubled=[...text.matchAll(/\b([A-Za-z]+)\s+\1\b/gi)].filter(m=>!/^(had|that)$/i.test(m[1])).map(m=>m[0]);
+  const openers={};sents.forEach(s=>{const f=(s.t.match(/^[“"(]?([A-Za-z']+)/)||[])[1];if(f){const k=f.toLowerCase();openers[k]=(openers[k]||0)+1}});
+  const opRep=Object.entries(openers).filter(([k,v])=>v>=3&&v/sents.length>=.15).sort((a,b)=>b[1]-a[1]);
+  const long=sents.filter(s=>words(s.t).length>38).map(s=>s.i);
+  const passive=sents.filter(s=>/\b(is|are|was|were|be|been|being)\s+(\w+ed|built|done|made|shown|known|given|taken|seen|written)\b/i.test(s.t)).length;
+  const low=text.toLowerCase();
+  const hype=HYPE.filter(h=>low.includes(h));
+  const vague=VAGUE.filter(v=>new RegExp("\\b"+v.replace(/ /g,"\\s+")+"\\b","i").test(text));
+  const iCount=ws.filter(w=>w==="i").length;
+  const paraLens={};sents.forEach(s=>{paraLens[s.p]=(paraLens[s.p]||0)+words(s.t).length});
+  const bigParas=Object.values(paraLens).filter(v=>v>220).length;
+  const nParas=Object.keys(paraLens).length;
+  let jd=null;
+  if(job.ad&&job.ad.trim().length>40){
+    const terms=jdTerms(job.ad);
+    const docStems=new Set(content.map(stem));
+    const covered=terms.filter(t=>docStems.has(stem(t.w))),missing=terms.filter(t=>!docStems.has(stem(t.w)));
+    const adW=words(job.ad);const ad4=new Set(ngrams(adW,4).filter(g=>g.split(" ").filter(w=>!STOP.has(w)&&w.length>3).length>=2));
+    const echo=[];sents.forEach(s=>{ngrams(words(s.t),4).forEach(g=>{if(ad4.has(g))echo.push(g)})});
+    jd={terms,covered,missing,echo:[...new Set(echo)],termStems:new Set(terms.map(t=>stem(t.w)))};
+  }
+  const fmt=[];const [lo,hi]=doc.range;
+  if(n<lo*.8)fmt.push(`At ${n} words this is short for a ${doc.label.toLowerCase()} (typical: ${lo}–${hi} words, ${doc.pages}).`);
+  else if(n>hi*1.15)fmt.push(`At ${n} words this is long for a ${doc.label.toLowerCase()} (typical: ${lo}–${hi} words, ${doc.pages}). Committees skim; cut to the strongest points.`);
+  if(bigParas)fmt.push(`${bigParas} paragraph${bigParas>1?"s are":" is"} over 220 words. Split long paragraphs so each makes one point.`);
+  if(nParas<=2&&n>350)fmt.push("Very few paragraph breaks were found. Use short paragraphs, and for research/teaching/extension statements consider bold lead-ins or headings for each goal.");
+  if(long.length)fmt.push(`${long.length} sentence${long.length>1?"s run":" runs"} over 38 words. Break them up.`);
+  if(doc.key!=="cover"&&nParas>3&&!/^[A-Z][^.!?]{3,70}$/m.test(text))fmt.push("No headings detected. Short headings (e.g., one per research goal) help reviewers scan.");
+  if(n&&iCount/n>.06)fmt.push(`"I" makes up ${(iCount/n*100).toFixed(1)}% of words. Vary sentence subjects (the work, the students, the stakeholders).`);
+  return {sents,n,overused,thr,doubled,opRep,long,passive,hype,vague,iCount,nParas,jd,fmt};
+}
+function crossDup(){
+  const keys=DOCS.map(d=>d.key).filter(k=>(S.docs[k].text||"").trim());
+  const grams={};keys.forEach(k=>{grams[k]=new Set(ngrams(words(S.docs[k].text),7))});
+  const res=[];
+  for(let a=0;a<keys.length;a++)for(let b=a+1;b<keys.length;b++){
+    const shared=[...grams[keys[a]]].filter(g=>grams[keys[b]].has(g));
+    if(shared.length>=2)res.push({a:keys[a],b:keys[b],n:shared.length,phrases:shared.slice(0,3)});
+  }
+  return res;
+}
+
+/* ---------------- state ---------------- */
+const KEY="dossier-review-v2";
+const emptyDoc=()=>({text:"",name:"",ai:null,model:null});
+function blankMode(m){const M=MODES[m];return{job:{title:"",dept:"",univ:"",ad:""},docs:Object.fromEntries(M.docs.map(d=>[d.key,emptyDoc()])),active:M.docs[0].key,example:false}}
+function blankAll(){return{mode:"faculty",modes:{faculty:blankMode("faculty"),resume:blankMode("resume"),grant:blankMode("grant")},refs:{text:"",name:"",ai:null,hist:[]},budget:budgetDefaults(),examples:[]}}
+let ALL=blankAll();
+try{const raw=localStorage.getItem(KEY);if(raw){const v=JSON.parse(raw);if(v&&v.modes){ALL=Object.assign(blankAll(),v);["faculty","resume","grant"].forEach(m=>{ALL.modes[m]=Object.assign(blankMode(m),ALL.modes[m]||{});MODES[m].docs.forEach(d=>{if(!ALL.modes[m].docs[d.key])ALL.modes[m].docs[d.key]=emptyDoc()})})}}
+  else{const old=localStorage.getItem("dossier-review-v1");if(old){const v=JSON.parse(old);if(v&&v.docs)ALL.modes.faculty=Object.assign(blankMode("faculty"),v)}}}catch(e){}
+let S=ALL.modes.faculty;
+function blank(){return blankMode(MODE)}
+function resetMode(){ALL.modes[MODE]=blankMode(MODE);S=ALL.modes[MODE]}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(ALL))}catch(e){try{const slim=JSON.parse(JSON.stringify(ALL));slim.examples=slim.examples.map(x=>({...x,text:x.text.slice(0,20000)}));localStorage.setItem(KEY,JSON.stringify(slim))}catch(_){}}}
+let ui={lineOf:{},figs:{},figAi:{},srcFiles:{},cmp:null,editing:{},focus:null,sel:null,hot:null,showColor:true,showIssues:true,showRep:false,showJD:false,running:{},stream:{},side:"sug",filter:"all",hist:{},flash:null,animKey:null,imp:null};
+
+// The sentence model keeps the reviewed sentence ids stable while suggestions are applied.
+function getModel(d){
+  if(d.model&&d.modelHash===hash(d.text))return d.model;
+  d.model=splitDoc(d.text);d.modelHash=hash(d.text);return d.model;
+}
+const validAi=d=>d.ai&&d.ai.hash===hash(d.text)?d.ai:null;
+
+/* ---------------- example ---------------- */
+const EX_JOB={title:"Assistant Professor in Precision Agriculture",dept:"Department of Biological and Agricultural Engineering",univ:"Northfield State University",
+ad:`Northfield State University, the state's land-grant institution, invites applications for a tenure-track Assistant Professor in Precision Agriculture (60% research, 20% teaching, 20% Extension) in the Department of Biological and Agricultural Engineering.
+
+The successful candidate will develop an extramurally funded research program in crop sensing, data-driven decision tools, and agricultural automation; teach undergraduate and graduate courses in instrumentation, sensors and controls, and data analytics; and deliver Extension programs that help row-crop producers adopt precision technologies.
+
+Candidates should demonstrate interdisciplinary, stakeholder-engaged approaches and a commitment to excellence in teaching, research, and Extension. The department houses the Northfield Digital Agriculture Center and 3,000 acres of research farms.
+
+Required: Ph.D. in agricultural engineering or a related field; evidence of research productivity. Preferred: experience with edge computing, imaging sensors, and Extension or outreach programming.`};
+const EX_COVER=`Dear Members of the Search Committee,
+I am writing to apply for the Assistant Professor position in Precision Agriculture in the Department of Biological and Agricultural Engineering at Northfield State University. I am excited about this position because it aligns with my passion for innovative, cutting-edge research and my commitment to excellence in teaching, research, and Extension.
+I completed my Ph.D. in Biosystems Engineering in 2025, where I developed low-cost hyperspectral imaging systems for detecting nitrogen stress in corn. This work produced four first-author journal articles and an open dataset of 12,000 annotated leaf spectra that has been downloaded by more than 30 research groups. As a postdoctoral researcher, I built an edge-computing pipeline that runs crop disease detection on a $90 single-board computer at 15 frames per second.
+My research program will revolutionize precision agriculture by eliminating the need for manual crop scouting across the entire state within five years. I will leverage data-driven, interdisciplinary, stakeholder-engaged approaches to address the needs of diverse stakeholders, which aligns with the department's strategic priorities. I am particularly eager to collaborate with the Northfield Digital Agriculture Center and use the university's research farms to validate sensors under field conditions.
+I have taught Instrumentation for Agricultural Systems as a co-instructor for two semesters and mentored six undergraduate researchers, two of whom presented at the ASABE annual meeting. I am also qualified to teach courses in machine vision, sensors and controls, and data analytics for agriculture.
+Thank you for your time and consideration and I look forward to hearing from you.`;
+const EX_AI={
+ summary:"Strong, concrete evidence of research productivity and a clear teaching record, but the letter leans on job-ad language in its middle paragraph, overpromises in its research vision, and never mentions Extension even though it is 20% of the appointment.",
+ scores:{clarity:7,evidence:8,fit:6,feasibility:3,innovation:6,writing:7},
+ innovation_comment:"Low-cost hyperspectral and edge-computing sensing is a credible niche; stating what is new compared with commercial scouting tools would make the innovation explicit.",
+ feasibility_comment:"\"Eliminating the need for manual crop scouting across the entire state within five years\" is not achievable by one lab and will read as naive to a committee. Promise a measurable first step instead.",
+ checklist:[
+  {id:"C1",status:"met",sentences:[1],note:"Title, department and university are named correctly.",add:null},
+  {id:"C2",status:"partial",sentences:[2],note:"The reason given is generic ('passion', 'cutting-edge'). Name what about Northfield specifically draws you.",add:null},
+  {id:"C3",status:"met",sentences:[3,5],note:"PhD and postdoc training are summarized clearly.",add:null},
+  {id:"C4",status:"met",sentences:[3,4,5],note:"Concrete outcomes: 4 papers, a 12,000-spectrum dataset used by 30+ groups, a $90 edge pipeline.",add:null},
+  {id:"C5",status:"partial",sentences:[6,7],note:"Future direction is stated as hype plus job-ad keywords; give one concrete research thrust.",add:null},
+  {id:"C6",status:"met",sentences:[9,10],note:"Teaching experience and courses listed without repeating the teaching statement.",add:null},
+  {id:"C7",status:"missing",sentences:[],note:"Extension is 20% of this position and 'preferred' in the ad, but no Extension or outreach experience is mentioned.",
+    add:{after:10,new_paragraph:true,text:"Extension is central to how I work. During my Ph.D., I [presented imaging results at grower field days / co-led a workshop for crop consultants], and at Northfield I would run on-farm demonstrations of low-cost sensors with county agents so producers can test them before buying."}},
+  {id:"C8",status:"partial",sentences:[7],note:"Overlap is asserted with the ad's own words rather than shown by mapping your evidence to its requirements (edge computing, imaging sensors).",
+    add:{after:5,new_paragraph:false,text:"This work maps directly onto the advertised emphasis on imaging sensors and edge computing."}},
+  {id:"C9",status:"met",sentences:[8],note:"Names the Digital Agriculture Center and research farms.",add:null},
+  {id:"C10",status:"partial",sentences:[4,5],note:"The low-cost angle is your differentiator but it is never stated as such.",
+    add:{after:5,new_paragraph:false,text:"Together, these results show what I bring that few candidates do: sensing systems cheap enough for producers to own, proven on edge hardware and already used by other researchers."}},
+  {id:"C11",status:"partial",sentences:[],note:"Concise overall; sentences 2 and 7 are filler that weaken the narrative.",add:null},
+  {id:"C12",status:"met",sentences:[11],note:"Closes with appreciation.",add:null}],
+ issues:[
+  {s:2,type:"unclear",quote:"my passion for innovative, cutting-edge research",replacement:"the department's investment in the Northfield Digital Agriculture Center, which matches my work on low-cost field sensing,",fix:"'Passion' and 'cutting-edge' are generic. Name a specific draw at this institution."},
+  {s:6,type:"overpromise",quote:"will revolutionize precision agriculture by eliminating the need for manual crop scouting across the entire state within five years",replacement:"will make crop scouting affordable for small and mid-sized farms, starting with field validation of a sub-$200 imaging node on [number] cooperator farms within three years",fix:"Statewide elimination of scouting is not achievable by one lab. Promise a measurable first step."},
+  {s:7,type:"jd_echo",quote:"leverage data-driven, interdisciplinary, stakeholder-engaged approaches to address the needs of diverse stakeholders",replacement:"work with [agronomists, crop consultants, and county Extension agents] to test which sensor outputs producers actually act on",fix:"These are the ad's own buzzwords. Replace them with who you will work with and what you will do."},
+  {s:11,type:"grammar",quote:"consideration and I look forward",replacement:"consideration, and I look forward",fix:"Use a comma before 'and' when it joins two independent clauses."}],
+ lacking:["Any Extension or outreach experience (20% of the appointment, and preferred in the ad).","A direct 'why me' sentence stating what you offer that other applicants do not.","Funding direction (agency or program) for the research vision."],
+ top_changes:["Rewrite the research vision sentence as one realistic, measurable 3–5 year goal.","Replace the job-ad keyword sentence with evidence that maps to 'edge computing' and 'imaging sensors' in the ad.","Add a short paragraph on Extension: field days, grower talks, or demonstrations you have done or will do.","State your differentiator outright: affordable, deployable sensing that producers can adopt."],
+ formatting:["Add date, your contact block, and the search committee address at the top; use institutional letterhead if your current employer allows.","Keep to one page; there is room for an Extension paragraph."],
+ strengths:["Quantified outcomes (papers, dataset downloads, cost and frame rate).","Specific institutional resources named."],
+ why_me:{verdict:"partly",comment:"The evidence for 'why me' is present (low-cost hyperspectral sensing, a widely used dataset, edge deployment), but the letter never says it. The reader has to infer it.",suggestion:"I bring something few precision-agriculture researchers do: sensing systems cheap enough for producers to own, proven on edge hardware."}
+};
+function loadExample(){resetMode();S.job={...EX_JOB};S.docs.cover={text:EX_COVER,name:"Example cover letter",ai:{...JSON.parse(JSON.stringify(EX_AI)),hash:hash(EX_COVER),t:1},model:null};S.active="cover";S.example=true}
+const hasAny=()=>DOCS.some(d=>(S.docs[d.key].text||"").trim())||S.job.ad.trim();
+if(MODE==="faculty"&&(!hasAny()||S.example))loadExample();
+
+/* ---------------- Claude ---------------- */
+let sampleFn=null,dlFn=null,claudeState="loading";
+(async()=>{await new Promise(r=>setTimeout(r));try{sampleFn=window.claude?await window.claude.use("sample"):dlMakeSample(dlLoadProvider())}catch(e){sampleFn=null}
+  claudeState=sampleFn?"ready":"none";renderClaudeBar();renderDoc()})();
+(async()=>{await new Promise(r=>setTimeout(r));try{dlFn=window.claude?await window.claude.use("downloads"):dlLocalDownloads}catch(e){dlFn=null}if(dlFn)renderDoc()})();
+setTimeout(()=>{if(claudeState==="loading"){claudeState="none";renderClaudeBar();renderDoc()}},11000);
+function renderClaudeBar(){
+  const b=document.getElementById("claudeBar");
+  if(claudeState==="none"){b.hidden=false;b.className="notice";b.innerHTML="<b>AI reviews are off.</b> Connect your own Claude or OpenAI key above, open the page on claude.ai, or use DossierLens inside Claude Code or Codex (see the README). Instant checks, uploads and the budget calculator still work.";}
+  else if(claudeState==="denied"){b.hidden=false;b.className="notice bad";b.innerHTML="<b>Claude review was not allowed for this page.</b> Reload and choose Allow when asked. The instant writing checks still work.";}
+  else b.hidden=true;
+  document.getElementById("reviewAll").disabled=claudeState!=="ready";
+}
+const ERR={not_granted:"Claude access was not allowed for this page.",sampling_disabled:"Claude is not available for this account.",rate_limited:"Too many requests or usage limit reached. Wait a bit and try again.",session_expired:"Your session expired. Sign in to claude.ai again.",prompt_too_large:"This statement is too long to review in one pass. Trim it or split it.",invalid_json:"The review came back malformed. Try again.",refused:"Claude declined to review this text.",empty_completion:"The review came back empty. Try again.",upstream_error:"The connection dropped. Try again."};
+
+function modeExtras(doc,d){
+  let text="",shape="";
+  text+=rfaPromptBlock();
+  if(MODE==="grant"&&S.rfa)shape+='"rfa_compliance":[{"rule":"...","status":"met","note":"..."}],';
+  if(d&&d.meta&&d.meta.fromPdf)text+=`
+- The text was extracted from a PDF. Ignore extraction artifacts (odd spacing, broken hyphenation, ligatures) and do not report them as grammar issues.`;
+  if(MODE==="resume"&&d&&d.meta){const m=d.meta;text+=`
+- File facts measured from the uploaded file (use them for the ATS items): type ${m.type||"?"}; tables ${m.tables??"?"}; images ${m.images??"?"}; ${m.columns?"looks multi-column":"single column"}; pages ${m.pages??"?"}; text in page header/footer: ${m.headerText?"yes":"no/unknown"}.`}
+  if(MODE==="grant"&&doc.key==="proposal"){
+    text+=`
+- OVERPROMISING AUDIT: judge whether the proposal promises more than the team can deliver. "feasibility_audit": expertise (does the team's demonstrated expertise cover every method promised? list gaps), timeline (are the aims doable in the stated duration with the staffing? list issues), cost (does the budget support the work: people, equipment, fieldwork? list issues; use the budget below if given), each with a 1-10 score (10 = fully realistic), plus "overpromised_claims" (exact quotes that promise too much and why) and a one-sentence "verdict".
+- ${budgetSummary(ALL.budget)}`;
+    shape='"feasibility_audit":{"expertise":{"score":6,"issues":["..."]},"timeline":{"score":5,"issues":["..."]},"cost":{"score":4,"issues":["..."]},"overpromised_claims":[{"quote":"...","why":"..."}],"verdict":"..."},';
+  }
+  return{text,shape};
+}
+function buildPrompt(doc,sents,job,other,d){
+  const isCover=!!doc.whyMe;const M=MODES[MODE],C=M.ctx;
+  const lines=[];let lastP=-1;
+  sents.forEach(s=>{if(s.p!==lastP&&lastP!==-1)lines.push("");lastP=s.p;lines.push(`[S${s.i}] ${s.t}`)});
+  const checklist=doc.items.map(it=>`${it.id}: ${it.text}`).join("\n");
+  const extra=modeExtras(doc,d);
+  return `You are ${M.role}. Review the applicant's ${doc.label} candidly, as a ${MODE==="grant"?"review panel":MODE==="resume"?"hiring team":"search committee"} would, and return ONLY a JSON object.
+
+${C.heading.toUpperCase()}
+${C.f1}: ${job.title||"(not given)"}
+${C.f2}: ${job.dept||"(not given)"}
+${C.f3}: ${job.univ||"(not given)"}
+${C.ad}:
+"""
+${(job.ad||"(not provided)").slice(0,7000)}
+"""
+${other?`\nCONTEXT FROM THE APPLICANT'S OTHER STATEMENTS (for duplication checks and for facts you may reuse; do not review these):\n"""\n${other}\n"""\n`:""}
+CHECKLIST for a ${doc.label}:
+${checklist}
+
+THE ${doc.label.toUpperCase()} (each sentence is numbered [S#]; a blank line separates paragraphs):
+"""
+${lines.join("\n")}
+"""
+
+INSTRUCTIONS
+- For every checklist item give status "met" (clearly and specifically addressed), "partial" (touched on vaguely, generically, or incompletely) or "missing". Be strict: generic claims without evidence are "partial".
+- For every item list the sentence numbers (integers, max 6) that address it, and a one-sentence note saying what is good or exactly what to add.
+- For every "partial" or "missing" item where new text would help, give "add": {"after": the S# after which the new text should be inserted (-1 = at the very beginning), "new_paragraph": true if it should start its own paragraph, "text": 1-3 sentences in the applicant's own voice and style that would satisfy the item}. For "met" items, "add": null.
+- List writing issues tied to sentences. Types: "grammar" (grammar, punctuation, spelling, agreement), "unclear" (vague, ambiguous, jargon, filler), "overpromise" (goals not doable for one early-career lab in 5 years, hype words), "jd_echo" (repeats the job ad's keywords/buzzwords instead of showing the applicant's own expertise and evidence), "repetition" (same idea or phrase repeated), "tone", "formatting". "quote" must be an exact, character-for-character substring of that one sentence, as short as possible. "replacement" is the exact text that should replace "quote" so the sentence still reads correctly (a minimal correction for grammar; a concrete, tighter rewrite otherwise); use "" only if no in-place rewrite makes sense. "fix" is a one-sentence reason. Do not give two issues whose quotes overlap. At most 25 issues; most important first.
+- NEVER invent facts (publications, grants, numbers, names, courses, experiences). Reuse facts the applicant gave; where a specific fact is needed and unknown, write a short placeholder in square brackets, e.g. [number of growers reached].
+- Scores are integers 1-10: ${M.subsDesc}.${extra.text}
+- "lacking": what a committee would find missing from this document. "top_changes": the 3-6 highest-impact edits, most important first. "formatting": layout/length/structure suggestions for this document type. "strengths": 2-4 items.
+${isCover?`- "why_me": does the letter answer "why should we hire YOU rather than the other applicants?" verdict "yes" | "partly" | "no", a 1-2 sentence comment, and "suggestion": one sentence the applicant could add (placeholders allowed).`:`- "why_me": null.`}
+
+JSON SHAPE (example values):
+{"summary":"2-3 sentence overall verdict","scores":{${SUBSCORES.map(([k],i)=>`"${k}":${[7,6,5,4,6,8][i]}`).join(",")}},"innovation_comment":"...","feasibility_comment":"...",${extra.shape}"checklist":[{"id":"${doc.items[0].id}","status":"partial","sentences":[0,2],"note":"...","add":{"after":2,"new_paragraph":false,"text":"..."}}],"issues":[{"s":3,"type":"grammar","quote":"exact words","replacement":"corrected words","fix":"..."}],"lacking":["..."],"top_changes":["..."],"formatting":["..."],"strengths":["..."],"why_me":${isCover?'{"verdict":"partly","comment":"...","suggestion":"..."}':"null"}}
+Include all ${doc.items.length} checklist ids (${doc.items[0].id}-${doc.items[doc.items.length-1].id}).`;
+}
+function clean(ai,doc,sents){
+  const ids=new Set(sents.map(s=>s.i));const nS=sents.length;
+  const o={summary:String(ai.summary||""),innovation_comment:String(ai.innovation_comment||""),feasibility_comment:String(ai.feasibility_comment||"")};
+  o.scores={};SUBSCORES.forEach(([k])=>{const v=Number(ai.scores&&ai.scores[k]);o.scores[k]=isFinite(v)&&v>0?Math.max(1,Math.min(10,Math.round(v))):null});
+  const byId={};(Array.isArray(ai.checklist)?ai.checklist:[]).forEach(c=>{if(c&&c.id)byId[String(c.id).toUpperCase()]=c});
+  o.checklist=doc.items.map(it=>{const c=byId[it.id]||{};const st=["met","partial","missing"].includes(c.status)?c.status:"missing";
+    let add=null;if(st!=="met"&&c.add&&String(c.add.text||"").trim()){let a=Number(c.add.after);if(!Number.isInteger(a)||(!ids.has(a)&&a!==-1))a=nS-1;add={after:a,new_paragraph:!!c.add.new_paragraph,text:String(c.add.text).trim()}}
+    return{id:it.id,status:st,sentences:(Array.isArray(c.sentences)?c.sentences:[]).map(Number).filter(x=>ids.has(x)).slice(0,8),note:String(c.note||""),add}});
+  o.issues=(Array.isArray(ai.issues)?ai.issues:[]).map(x=>({s:Number(x.s),type:ISSUE_TYPES[x.type]?x.type:"unclear",quote:String(x.quote||""),replacement:String(x.replacement??""),fix:String(x.fix||"")}))
+    .filter(x=>ids.has(x.s)).slice(0,30);
+  const arr=a=>(Array.isArray(a)?a:[]).map(String).filter(Boolean).slice(0,8);
+  o.lacking=arr(ai.lacking);o.top_changes=arr(ai.top_changes);o.formatting=arr(ai.formatting);o.strengths=arr(ai.strengths);
+  if(ai.feasibility_audit&&MODE==="grant"){const f=ai.feasibility_audit,sc=x=>{const v=Number(x);return isFinite(v)&&v>0?Math.max(1,Math.min(10,Math.round(v))):null},ar=a=>(Array.isArray(a)?a:[]).map(String).filter(Boolean).slice(0,8);
+    o.audit={expertise:{score:sc(f.expertise&&f.expertise.score),items:ar(f.expertise&&f.expertise.issues)},timeline:{score:sc(f.timeline&&f.timeline.score),items:ar(f.timeline&&f.timeline.issues)},cost:{score:sc(f.cost&&f.cost.score),items:ar(f.cost&&f.cost.issues)},
+      claims:(Array.isArray(f.overpromised_claims)?f.overpromised_claims:[]).slice(0,10).map(c=>({quote:String(c.quote||""),why:String(c.why||"")})),verdict:String(f.verdict||"")}}
+  o.rfa_compliance=(Array.isArray(ai.rfa_compliance)?ai.rfa_compliance:[]).slice(0,20).map(r=>({rule:String(r.rule||""),status:["met","partial","missing"].includes(r.status)?r.status:"partial",note:String(r.note||"")}));
+  o.why_me=doc.whyMe&&ai.why_me?{verdict:["yes","partly","no"].includes(ai.why_me.verdict)?ai.why_me.verdict:"partly",comment:String(ai.why_me.comment||""),suggestion:String(ai.why_me.suggestion||"")}:null;
+  return o;
+}
+async function review(key,fresh){
+  if(!sampleFn||ui.running[key])return;
+  const doc=DOCMAP[key],d=S.docs[key];if(!d.text.trim())return;
+  // re-split so new sentence ids line up with the current text
+  d.model=splitDoc(d.text);d.modelHash=hash(d.text);const sents=d.model;
+  let other="";
+  if(MODE==="faculty"&&key==="cover"){other=["research","teaching","extension"].map(k=>S.docs[k].text.trim()?`[${DOCMAP[k].label}]\n${S.docs[k].text.trim().slice(0,3000)}`:"").filter(Boolean).join("\n\n")}
+  const ctl=new AbortController();ui.running[key]=ctl;ui.stream[key]="";d.err=null;renderStrip();if(S.active===key)renderDoc();
+  try{
+    const opts={modelTier:document.getElementById("depth").value,signal:ctl.signal,
+      onText:({text})=>{ui.stream[key]=text;const el=document.getElementById("stream-"+key);if(el)el.textContent="…"+text.slice(-260)}};
+    if(fresh)opts.cache=false;
+    const raw=await sampleFn.json(buildPrompt(doc,sents,S.job,other,d),opts);
+    d.ai={...clean(raw||{},doc,sents),hash:hash(d.text),t:Date.now()};
+    ui.hist[key]=[];save();toast(`${doc.label} reviewed`);
+  }catch(e){
+    if(e&&e.code==="not_granted"){claudeState="denied";renderClaudeBar()}
+    if(!(e&&e.code==="cancelled"))d.err=ERR[e&&e.code]||ERR.upstream_error;
+  }finally{delete ui.running[key];renderAll()}
+}
+async function reviewAll(){
+  for(const d of DOCS){if(claudeState!=="ready")break;const x=S.docs[d.key];if(x.text.trim()&&!validAi(x))await review(d.key)}
+}
+
+/* ---------------- applying suggestions ---------------- */
+function snapshot(key){const d=S.docs[key];(ui.hist[key]=ui.hist[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai}));if(ui.hist[key].length>40)ui.hist[key].shift()}
+function commit(key){const d=S.docs[key];d.text=rebuild(d.model);d.modelHash=hash(d.text);d.ai.hash=d.modelHash;save()}
+function undo(key){const h=ui.hist[key];if(!h||!h.length)return;const v=JSON.parse(h.pop());const d=S.docs[key];d.text=v.text;d.model=v.model;d.ai=v.ai;d.modelHash=hash(d.text);save();renderAll();toast("Undone")}
+function applyIssue(key,k){
+  const d=S.docs[key],ai=validAi(d);if(!ai)return false;const x=ai.issues[k];if(!x||x.state)return false;
+  const m=getModel(d);const s=m.find(z=>z.i===x.s);
+  if(!s||!x.quote||!s.t.includes(x.quote)){toast("That text has changed, so this fix can't be placed. Edit it by hand.");return false}
+  snapshot(key);s.t=s.t.replace(x.quote,()=>x.replacement).replace(/\s{2,}/g," ").replace(/\s+([,.;:])/g,"$1");x.state="accepted";commit(key);ui.flash=x.s;return true;
+}
+function applyAdd(key,id,text){
+  const d=S.docs[key],ai=validAi(d);if(!ai)return false;const c=ai.checklist.find(z=>z.id===id);if(!c||!c.add)return false;
+  text=String(text||"").trim();if(!text)return false;
+  const m=getModel(d);snapshot(key);
+  const newId=Math.max(999,...m.map(z=>z.i))+1;
+  let idx=c.add.after===-1?-1:m.findIndex(z=>z.i===c.add.after);
+  if(idx<-1||(idx===-1&&c.add.after!==-1))idx=m.length-1;
+  const ref=idx>=0?m[idx]:m[0];
+  // skip past any text already inserted after the same anchor
+  while(idx+1<m.length&&m[idx+1].added&&m[idx+1].anchor===c.add.after)idx++;
+  const p=c.add.new_paragraph?(idx>=0?m[idx].p+0.001+newId*1e-7:-1):(idx>=0?m[idx].p:ref.p);
+  m.splice(idx+1,0,{i:newId,p,t:text,added:true,anchor:c.add.after,item:id});
+  c.sentences=[...c.sentences,newId];c.applied=true;commit(key);ui.flash=newId;return true;
+}
+function dismiss(kind,key,ref){const ai=validAi(S.docs[key]);if(!ai)return;snapshot(key);
+  if(kind==="i")ai.issues[ref].state="dismissed";else{const c=ai.checklist.find(z=>z.id===ref);if(c)c.addState="dismissed"}save()}
+function pendingSugs(ai){
+  const out=[];if(!ai)return out;
+  ai.issues.forEach((x,k)=>{if(!x.state)out.push({kind:"i",k,x,f:ISSUE_TYPES[x.type].f})});
+  ai.checklist.forEach(c=>{if(c.add&&!c.applied&&c.addState!=="dismissed")out.push({kind:"a",c,f:"add"})});
+  return out;
+}
+
+/* ---------------- scoring ---------------- */
+function scoreOf(key){
+  const d=S.docs[key],ai=d.ai;if(!ai||!d.text.trim())return null;
+  const cov=ai.checklist.reduce((a,c)=>a+(c.status==="met"?1:c.status==="partial"?.5:0),0)/ai.checklist.length*100;
+  const subs=Object.values(ai.scores).filter(v=>v!=null);const mean=subs.length?subs.reduce((a,b)=>a+b,0)/subs.length*10:cov;
+  return{overall:Math.round(.4*cov+.6*mean),coverage:Math.round(cov),quality:Math.round(mean),stale:ai.hash!==hash(d.text)};
+}
+const tone=v=>v==null?"":v>=75?"ok":v>=55?"warn":"bad";
+
+/* ---------------- file reading ---------------- */
+function loadScript(src){return new Promise((res,rej)=>{if(document.querySelector(`script[src="${src}"]`))return res();const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("A file reader library could not load. Check your connection and try again."));document.head.appendChild(s)})}
+const META={};
+const PDFJS="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+async function ensurePdf(){await loadScript(PDFJS+"pdf.worker.min.js");await loadScript(PDFJS+"pdf.min.js");window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDFJS+"pdf.worker.min.js";return window.pdfjsLib}
+const LIG={"ﬀ":"ff","ﬁ":"fi","ﬂ":"fl","ﬃ":"ffi","ﬄ":"ffl","ﬅ":"st","ﬆ":"st"};
+const fixLig=t=>t.replace(/[ﬀ-ﬆ]/g,c=>LIG[c]);
+async function readFile(file){
+  const name=file.name.toLowerCase();const meta={type:name.split(".").pop()};META[file.name]=meta;
+  if(name.endsWith(".docx")){
+    await loadScript("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js");
+    const ab=await file.arrayBuffer();const r=await window.mammoth.extractRawText({arrayBuffer:ab});
+    try{const html=(await window.mammoth.convertToHtml({arrayBuffer:ab.slice(0)})).value;meta.tables=(html.match(/<table/g)||[]).length;meta.images=(html.match(/<img/g)||[]).length}catch(e){}
+    return fixLig(r.value);
+  }
+  if(name.endsWith(".pdf")){
+    const lib=await ensurePdf();meta.fromPdf=true;
+    const pdf=await lib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;meta.pages=pdf.numPages;
+    const IMG=[lib.OPS.paintImageXObject,lib.OPS.paintInlineImageXObject,lib.OPS.paintJpegXObject].filter(x=>x!=null);
+    let out="",images=0,rightStarts=0,allLines=0,headerText=false;
+    for(let p=1;p<=pdf.numPages;p++){
+      const page=await pdf.getPage(p);const vp=page.getViewport({scale:1});const tc=await page.getTextContent();
+      try{const ops=await page.getOperatorList();images+=ops.fnArray.filter(f=>IMG.includes(f)).length}catch(e){}
+      // group items into lines by baseline, then join using the real horizontal gap between items
+      const lines=[];
+      tc.items.forEach(it=>{if(!it.str)return;const x=it.transform[4],y=it.transform[5],h=Math.abs(it.transform[3])||Math.abs(it.transform[0])||10;
+        let L=lines.length?lines[lines.length-1]:null;
+        if(!L||Math.abs(L.y-y)>h*.45||x<L.endX-h*2){L={y,h,x0:x,endX:x,t:""};lines.push(L)}
+        const gap=x-L.endX;
+        if(L.t&&gap>h*.16&&!/\s$/.test(L.t)&&!/^\s/.test(it.str))L.t+=" ";
+        L.t+=it.str;L.endX=x+(it.width||it.str.length*h*.5);L.h=Math.max(L.h,h)});
+      const kept=lines.map(l=>({...l,t:l.t.replace(/\s+/g," ").trim()})).filter(l=>l.t&&!PAGENUM.test(l.t));
+      kept.forEach(l=>{allLines++;if(l.x0>vp.width*.45)rightStarts++;if((l.y>vp.height*.93||l.y<vp.height*.05)&&/@|\(\d{3}\)|\d{3}[-. ]\d{3}[-. ]\d{4}|linkedin/i.test(l.t))headerText=true});
+      const lens=kept.map(l=>l.t.length).sort((a,b)=>a-b);const full=lens[Math.floor(lens.length*.75)]||70;
+      kept.forEach((l,i)=>{const prev=kept[i-1];const gap=prev?prev.y-l.y:0;const pt=prev?prev.t:"";
+        const para=prev&&(gap<0||gap>prev.h*1.75||pt.length<full*.65||headType(pt)||headType(l.t)||/^dear\b/i.test(l.t)||/^[•●▪◦\-–]\s/.test(l.t));
+        if(i===0)out+=l.t;else if(!para&&/[A-Za-z]-$/.test(pt)&&/^[a-z]/.test(l.t))out=out.replace(/-$/,"\u0001")+l.t;
+        else out+=(para?"\n":" ")+l.t});
+      out+="\n";
+    }
+    meta.images=images;meta.columns=allLines>12&&rightStarts/allLines>.22;meta.headerText=headerText;
+    // line-break hyphens: keep the hyphen only if the hyphenated form appears elsewhere in the document
+    out=out.replace(/([A-Za-z]+)\u0001([a-z]+)/g,(m,a,b)=>new RegExp("\\b"+a+"-"+b+"\\b","i").test(out)?a+"-"+b:a+b);
+    // letter-spaced headings ("R E S E A R C H") and stray spaces before punctuation
+    out=out.replace(/\b(?:[A-Za-z] ){3,}[A-Za-z]\b/g,m=>m.replace(/ /g,"")).replace(/ +([,.;:!?)])/g,"$1").replace(/\( +/g,"(").replace(/[ \t]+/g," ");
+    return fixLig(out);
+  }
+  if(name.endsWith(".doc"))throw new Error(`${file.name}: old .doc files can't be read here. Save as .docx or PDF, or paste the text.`);
+  return await file.text();
+}
+
+/* ---------------- packet import: zip expansion + heading-based splitting ---------------- */
+const PAGENUM=/^(page\s*)?\d{1,3}(\s*(of|\/)\s*\d{1,3})?$/i;
+const HEADS=[
+ ["skip",/\bcurriculum vitae\b|^\s*(cv|vita)\b|\b(diversity|dei|inclusion|equity|belonging)\b.*\b(statement|contributions?)\b|\bstatement (of|on) (diversity|inclusion|contributions to)/],
+ ["extension",/\bextension\b.*\b(philosophy|statement|plan|program|vision|approach|interests)\b|\bstatement of extension\b/],
+ ["outreach",/\b(outreach|service|engagement)\b.*\b(statement|philosophy|plan)\b|\bstatement of (outreach|service)\b|\b(outreach and service|service and outreach)\b/],
+ ["teaching",/\bteaching\b.*\b(statement|philosophy|plan|interests)\b|\bstatement of teaching\b|\bphilosophy of teaching\b|\bteaching and mentoring\b/],
+ ["research",/\bresearch\b.*\b(statement|plan|interests|vision|program|proposal|agenda)\b|\bstatement of research\b|\bresearch and scholarship\b/],
+ ["cover",/\bcover letter\b|\bletter of (application|interest)\b|\bapplication letter\b/]];
+const KW={research:"research",teaching:"teaching",extension:"extension",outreach:/outreach|service|engagement/,cover:/cover|letter/,skip:/curriculum|cv|vita|diversity|dei|inclusion|equity|belonging/};
+function headType(line){
+  const l=line.trim().toLowerCase();
+  if(!l||l.length>110||l.split(/\s+/).length>14||/[.;,]$/.test(l)&&!/:$/.test(l))return null;
+  const hits=HEADS.filter(([,re])=>re.test(l)).map(([t])=>{const k=KW[t];const m=typeof k==="string"?l.indexOf(k):(l.match(k)||{index:999}).index;return{t,pos:m}});
+  if(!hits.length)return null;
+  hits.sort((a,b)=>a.pos-b.pos);return hits[0].t;
+}
+function guessByName(n){const h=headType(n.replace(/\.[a-z0-9]+$/i,"").replace(/[_\-.]+/g," "));if(h)return h;
+  const l=n.toLowerCase();
+  if(/cover|letter/.test(l))return"cover";if(/teach/.test(l))return"teaching";if(/extension/.test(l))return"extension";
+  if(/outreach|service/.test(l))return"outreach";if(/research/.test(l))return"research";if(/\bcv\b|vita|diversity|dei\b/.test(l))return"skip";return null}
+function guessByContent(t){
+  const l=" "+t.toLowerCase()+" ";const c=re=>(l.match(re)||[]).length;
+  if(/\bdear\b/.test(t.toLowerCase().slice(0,600))||/search committee|i am writing to apply|sincerely,/.test(l))return"cover";
+  const n=Math.max(200,words(t).length);
+  const sc={research:c(/\bresearch|hypothes|\baims?\b|funding|nsf|usda|nih|grant/g),teaching:c(/\bteach|students?\b|course|classroom|learning|curricul|syllab/g),
+    extension:c(/\bextension\b|producers?|growers?|field days?|stakeholders?|county agents?/g),outreach:c(/\bservice\b|outreach|k-12|committee|volunteer|community|reviewer/g)};
+  const best=Object.entries(sc).sort((a,b)=>b[1]-a[1])[0];return best[1]/n>.004?best[0]:null;
+}
+function splitSections(name,text){
+  const lines=text.replace(/\r/g,"").split(/\n+/).map(x=>x.trim()).filter(x=>x&&!PAGENUM.test(x));
+  const secs=[];let cur={src:name,type:null,how:"",heading:"",lines:[]};
+  const push=()=>{if(cur.lines.join(" ").trim().length>40)secs.push(cur)};
+  lines.forEach(ln=>{
+    const h=headType(ln);
+    if(h){if(h===cur.type)return;push();cur={src:name,type:h,how:"heading",heading:ln,lines:[]};return}
+    if(/^dear\b/i.test(ln)&&cur.type!=="cover"){
+      if(!cur.type){cur.type="cover";cur.how="salutation";cur.heading=ln}
+      else{push();cur={src:name,type:"cover",how:"salutation",heading:ln,lines:[]}}
+    }
+    cur.lines.push(ln);
+  });
+  push();
+  const byName=guessByName(name);
+  secs.forEach(s=>{s.text=s.lines.join("\n");delete s.lines;
+    if(!s.type){if(secs.length===1&&byName){s.type=byName;s.how="file name"}else{const g=guessByContent(s.text);s.type=g||"skip";s.how=g?"content guess":"not recognized"}}
+    s.words=words(s.text).length});
+  if(secs.length>1&&secs[0].how==="not recognized")secs[0].type="skip";
+  return secs;
+}
+async function expandFiles(list){
+  const out=[],errs=[];
+  for(const f of list){
+    const n=f.name.toLowerCase();
+    try{
+      if(n.endsWith(".zip")){
+        await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js");
+        const zip=await window.JSZip.loadAsync(await f.arrayBuffer());
+        const entries=Object.values(zip.files).filter(e=>!e.dir&&!/(^|\/)(__MACOSX|\.)/.test(e.name)&&!/(^|\/)~\$/.test(e.name)&&/\.(docx|pdf|txt|md|doc)$/i.test(e.name))
+          .sort((a,b)=>a.name.localeCompare(b.name,undefined,{numeric:true}));
+        if(!entries.length)errs.push(`${f.name}: no .docx, .pdf or .txt files inside.`);
+        for(const e of entries){const base=e.name.split("/").pop();
+          try{const file=new File([await e.async("arraybuffer")],base);ui.srcFiles[base]=file;out.push({name:base,text:await readFile(file),meta:META[base]})}catch(x){errs.push(x.message||`${base}: could not be read.`)}}
+      }else{ui.srcFiles[f.name]=f;out.push({name:f.name,text:await readFile(f),meta:META[f.name]})}
+    }catch(x){errs.push(x.message||`${f.name}: could not be read.`)}
+  }
+  return{files:out,errs};
+}
+async function importFiles(list,hint){
+  const msg=$("bulkMsg");
+  msg.innerHTML=`<div class="notice info"><span class="dots">Reading ${list.length} file${list.length>1?"s":""}</span></div>`;
+  $("bulk").scrollIntoView({behavior:"smooth",block:"start"});
+  const {files,errs}=await expandFiles([...list]);
+  const secs=[];
+  files.forEach(f=>{if(!f.text||!f.text.trim()){errs.push(`${f.name}: no text found (a scanned PDF? paste its text instead).`);return}
+    const ss=MODE==="faculty"?splitSections(f.name,f.text):[{src:f.name,type:mapImportType(f.name,f.text,hint),how:hint?"uploaded to this slot":"file name / content",heading:"",text:f.text,words:words(f.text).length}];ss.forEach(x=>x.meta=f.meta);
+    if(hint&&ss.length===1&&ss[0].how!=="heading"&&ss[0].how!=="salutation"){ss[0].type=hint;ss[0].how="uploaded to this slot"}
+    secs.push(...ss)});
+  msg.innerHTML=errs.length?`<div class="notice bad">${errs.map(esc).join("<br>")}</div>`:"";
+  if(!secs.length){ui.imp=null;renderImport();return}
+  if(hint&&secs.length===1&&secs[0].type===hint&&!errs.length){
+    if(S.example){resetMode();S.active=hint}
+    S.docs[hint]={text:secs[0].text,name:secs[0].src,ai:null,model:null,meta:secs[0].meta};ui.editing[hint]=false;save();msg.innerHTML="";renderAll();toast(`Added to ${DOCMAP[hint].label}`);return}
+  ui.imp={secs};renderImport();
+}
+function renderImport(){
+  const host=$("importPanel");if(!ui.imp){host.innerHTML="";return}
+  const secs=ui.imp.secs;const files=new Set(secs.map(s=>s.src)).size;
+  const cnt={};secs.forEach(s=>{if(s.type!=="skip")cnt[s.type]=(cnt[s.type]||0)+1});
+  const opts=t=>[...DOCS.map(d=>`<option value="${d.key}" ${t===d.key?"selected":""}>${esc(d.label)}</option>`),`<option value="skip" ${t==="skip"?"selected":""}>Skip (CV, diversity statement, other)</option>`].join("");
+  const willReplace=Object.keys(cnt).filter(k=>!S.example&&S.docs[k].text.trim());
+  const n=Object.keys(cnt).length;
+  host.innerHTML=`<div class="imp"><div class="row" style="justify-content:space-between"><b>Found ${secs.length} part${secs.length>1?"s":""} in ${files} file${files>1?"s":""}. Check where each goes.</b><span class="muted" style="font-size:12px">Parts sent to the same statement are joined in order.</span></div>
+    ${secs.map((s,i)=>`<div class="isec glass ${s.type==="skip"?"skip":""}"><div style="min-width:0">
+      <div class="src"><b>${esc(s.heading||s.src)}</b><span class="pill ${s.how==="heading"||s.how==="salutation"?"ok":s.how==="not recognized"?"bad":"warn"}">${s.how==="heading"?"found by heading":s.how==="salutation"?"found by “Dear…”":esc(s.how)}</span><span class="muted">${esc(s.src)} · ${s.words} words</span></div>
+      <div class="pv">${esc(s.text.slice(0,220))}${s.text.length>220?"…":""}</div></div>
+      <div style="display:grid;gap:4px"><label class="muted" for="imp-${i}" style="font-size:11px;font-weight:600">Use as</label><select id="imp-${i}" data-imp="${i}">${opts(s.type)}</select>
+      ${s.type!=="skip"&&cnt[s.type]>1?`<span class="pill warn">${cnt[s.type]} parts → joined</span>`:""}</div></div>`).join("")}
+    ${willReplace.length?`<div class="notice">This replaces your current ${willReplace.map(k=>DOCMAP[k].label).join(", ")} and clears ${willReplace.length>1?"their":"its"} reviews.</div>`:""}
+    <div class="row"><button class="btn primary" id="impApply" ${n?"":"disabled"}>Add ${n} statement${n===1?"":"s"}</button><button class="btn" id="impCancel">Cancel</button></div></div>`;
+  host.querySelectorAll("[data-imp]").forEach(sel=>sel.onchange=()=>{secs[+sel.dataset.imp].type=sel.value;renderImport()});
+  $("impCancel").onclick=()=>{ui.imp=null;renderImport()};
+  $("impApply").onclick=()=>{
+    if(S.example){resetMode()}
+    const grouped={};secs.forEach(s=>{if(s.type!=="skip")(grouped[s.type]=grouped[s.type]||[]).push(s)});
+    Object.entries(grouped).forEach(([k,arr])=>{S.docs[k]={text:arr.map(s=>s.text).join("\n"),name:[...new Set(arr.map(s=>s.src))].join(", "),ai:null,model:null,meta:arr[0].meta};ui.editing[k]=false});
+    S.active=DOCS.find(d=>grouped[d.key]).key;ui.imp=null;ui.sel=null;ui.focus=null;save();
+    if(!S.job.ad.trim())$("posPanel").open=true;
+    renderAll();toast(`Added ${Object.keys(grouped).length} statement${Object.keys(grouped).length>1?"s":""}`);
+  };
+}
+
+/* ---------------- render ---------------- */
+const $=id=>document.getElementById(id);
+function renderPos(){
+  const C=MODES[MODE].ctx;$("posHead").textContent=C.heading;$("lf1").textContent=C.f1;$("lf2").textContent=C.f2;$("lf3").textContent=C.f3;$("lad").textContent=C.ad;$("ladHint").textContent="("+C.adHint+")";
+  $("jobTitle").placeholder=C.p1;$("jobDept").placeholder=C.p2;$("jobUniv").placeholder=C.p3;$("jobAd").placeholder=`Paste the ${C.ad.toLowerCase()} here. It is used to check fit and keyword echoing.`;
+  ["Title","Dept","Univ","Ad"].forEach(k=>{const el=$("job"+k),v=S.job[k.toLowerCase()];if(document.activeElement!==el)el.value=v});
+  const ok=S.job.ad.trim().length>40;
+  renderRfaArea();
+  $("posSummary").innerHTML=ok?`<span class="pill ok">${esc(MODES[MODE].ctx.ad)} added</span> ${esc(S.job.title||"")}`:`<span class="pill warn">Add the ${esc(MODES[MODE].ctx.ad.toLowerCase())} for fit checks</span>`;
+}
+function renderStrip(){
+  const scs=DOCS.map(d=>scoreOf(d.key)).filter(Boolean);
+  const pk=scs.length?Math.round(scs.reduce((a,b)=>a+b.overall,0)/scs.length):null;
+  let h=`<div class="pkt"><div class="eyebrow">${MODE==="grant"?"Proposal score":MODE==="resume"?"Application score":"Packet score"}</div><div class="big">${pk==null?"—":pk}</div><div style="font-size:12px;opacity:.85">${scs.length?`average of ${scs.length} reviewed`:"no statements reviewed yet"}</div></div>`;
+  DOCS.forEach(d=>{
+    const x=S.docs[d.key],sc=scoreOf(d.key),has=x.text.trim();const ai=validAi(x);
+    let st;if(ui.running[d.key])st=`<span class="pill acc dots">Reviewing</span>`;
+    else if(!has)st=`<span class="pill">Not added</span>`;
+    else if(!sc)st=`<span class="pill">${words(x.text).length} words</span>`;
+    else if(sc.stale)st=`<span class="pill warn">Edited · re-run</span>`;
+    else{const p=pendingSugs(ai).length;st=p?`<span class="pill acc">${p} suggestion${p>1?"s":""}</span>`:`<span class="pill ok">All handled</span>`}
+    h+=`<button class="dtab glass" role="tab" aria-selected="${S.active===d.key}" data-tab="${d.key}">
+      <span class="name">${esc(d.label)}</span>
+      <span class="meta"><span class="score">${sc?sc.overall:"—"}</span>${st}</span>
+      <span class="bar"><i style="width:${sc?sc.overall:0}%"></i></span></button>`;
+  });
+  if(MODE==="grant"){const c=calcBudget(ALL.budget);
+    h+=`<button class="dtab glass" role="tab" aria-selected="${S.active==="tool:budget"}" data-tab="tool:budget"><span class="name">Budget calculator</span><span class="meta"><span class="score" style="font-size:16px">${money(c.T)}</span>${c.overCap?`<span class="pill bad">Over cap</span>`:`<span class="pill">${c.Y} yrs</span>`}</span><span class="bar"><i style="width:${c.cap?Math.min(100,c.T/c.cap*100):0}%"></i></span></button>
+      <button class="dtab glass" role="tab" aria-selected="${S.active==="tool:compare"}" data-tab="tool:compare"><span class="name">Compare with funded</span><span class="meta"><span class="score" style="font-size:16px">${ALL.examples.length}</span><span class="pill">${ALL.examples.length===1?"example":"examples"}</span></span><span class="bar"><i style="width:${Math.min(100,ALL.examples.length*20)}%"></i></span></button>`}
+  $("strip").style.setProperty("--n",DOCS.length+(MODE==="grant"?2:0));
+  $("strip").innerHTML=h;
+  $("strip").querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{S.active=b.dataset.tab;ui.focus=null;ui.sel=null;ui.hot=null;save();renderStrip();renderDoc()});
+}
+function renderDup(){
+  const r=crossDup();
+  $("dup").innerHTML=r.length?`<div class="notice"><b>Repeated text across statements.</b> ${r.map(x=>`${esc(DOCMAP[x.a].label)} and ${esc(DOCMAP[x.b].label)} share ${x.n} identical 7-word runs, e.g. “${esc(x.phrases[0])}…”`).join("; ")}. Committees read the whole packet; reword shared passages so each document adds something new.</div>`:"";
+}
+function ring(v){const c=2*Math.PI*44,col=v==null?"var(--line)":`var(--${tone(v)})`;
+  return `<div class="ring"><svg viewBox="0 0 104 104"><circle cx="52" cy="52" r="44" fill="none" stroke="var(--sunken)" stroke-width="9"/><circle class="fg" cx="52" cy="52" r="44" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" style="--c:${c}" stroke-dasharray="${c}" stroke-dashoffset="${v==null?c:c*(1-v/100)}"/></svg><div class="v"><div><span id="ringNum" data-v="${v??""}">${v==null?"—":v}</span><small>of 100</small></div></div></div>`}
+
+function renderDoc(){
+  if(ALL.mode==="refs"){renderRefs();return}
+  if(ALL.mode==="funding"){renderFunding();return}
+  if(String(S.active).startsWith("tool:")){renderTool(S.active.slice(5));return}
+  if(!DOCMAP[S.active])S.active=DOCS[0].key;
+  const doc=DOCMAP[S.active],d=S.docs[S.active],key=doc.key;
+  const host=$("doc");
+  const has=d.text.trim();
+  if(!has||ui.editing[key]){host.classList.remove("anim");host.innerHTML=inputView(doc,d);wireInput(doc,d);return}
+  const L=localChecks(doc,d.text,S.job);L.ai=aiScan(d.text);
+  const ai=validAi(d);const sc=scoreOf(key);const staleAi=d.ai&&!ai;
+  const sents=ai?getModel(d):L.sents;
+  const running=!!ui.running[key];
+  const ak=key+"|"+(ai?ai.t:"none");const anim=ui.animKey!==ak;ui.animKey=ak;
+  host.classList.toggle("anim",anim);
+  const sItems={},sIss={};
+  if(ai){ai.checklist.forEach(c=>c.sentences.forEach(s=>{(sItems[s]=sItems[s]||[]).push(c.id)}));ai.issues.forEach((x,k)=>{if(!x.state)(sIss[x.s]=sIss[x.s]||[]).push(k)})}
+  const itemById=Object.fromEntries(doc.items.map(it=>[it.id,it]));
+  const cById=ai?Object.fromEntries(ai.checklist.map(c=>[c.id,c])):{};
+  const repSet=new Set(L.overused.map(o=>stem(o.w)));
+  const jdSet=L.jd?L.jd.termStems:new Set();
+  const sugs=pendingSugs(ai);
+  const appliedN=ai?ai.issues.filter(x=>x.state==="accepted").length+ai.checklist.filter(c=>c.applied).length:0;
+  const hist=(ui.hist[key]||[]).length;
+
+  let h=`<div class="dochead rise">${ring(sc&&!sc.stale?sc.overall:null)}
+    <div style="min-width:0;display:grid;gap:10px">
+      <div><div class="eyebrow">${esc(d.name||"Pasted text")} · ${L.n} words · ${L.sents.length} sentences</div><h2>${esc(doc.label)}</h2></div>
+      ${ai?`<div class="subs">${SUBSCORES.map(([k,lab])=>{const v=ai.scores[k];const p=v==null?0:v*10;return`<div class="sub"><div class="l"><span>${lab}</span><b>${v??"–"}/10</b></div><div class="bar"><i class="${p>=75?"hi":p>=55?"mid":"lo"}" style="width:${p}%"></i></div></div>`}).join("")}
+        <div class="sub"><div class="l"><span>Checklist coverage</span><b>${sc.coverage}%</b></div><div class="bar"><i class="${sc.coverage>=75?"hi":sc.coverage>=55?"mid":"lo"}" style="width:${sc.coverage}%"></i></div></div></div>`
+      :`<div class="muted">${running?"Claude is reading the statement against the checklist.":claudeState==="ready"?"Run the review to score this statement, highlight which sentences cover each checklist item, and get fixes you can accept.":"Instant writing checks are shown below."}</div>`}
+    </div>
+    <div class="acts row" style="justify-content:flex-end">
+      ${running?`<button class="btn" id="stopBtn">Stop</button>`:`<button class="btn primary" id="runBtn" ${claudeState!=="ready"?"disabled":""}>${ai?"Review again":"Review with Claude"}</button>`}
+      <button class="btn" id="editBtn">Edit text</button>
+      <button class="btn" id="replaceBtn">Replace</button>
+      <button class="btn" id="dlDoc">Download .docx</button>
+    </div></div>`;
+  if(running)h+=`<div class="notice info"><b class="dots">Reviewing</b> This usually takes 20–90 seconds.<div class="stream" id="stream-${key}">${esc((ui.stream[key]||"").slice(-260))}</div></div>`;
+  if(d.err)h+=`<div class="notice bad">${esc(d.err)}</div>`;
+  if(staleAi&&!running)h+=`<div class="notice">The text was edited by hand since the last review. Highlights and suggestions are hidden until you review again.</div>`;
+  if(ai&&appliedN)h+=`<div class="notice ok row" style="justify-content:space-between"><span><b>${appliedN} change${appliedN>1?"s":""} applied.</b> Scores reflect the original review. Review again to re-score the revised text.</span><span class="row"><button class="btn small" id="copyText">Copy revised text</button>${dlFn?`<button class="btn small" id="dlText">Download .txt</button>`:""}</span></div>`;
+  if(ai&&ai.summary)h+=`<div class="rise" style="--k:1;font-family:var(--f-display);font-size:19px;line-height:1.55;max-width:82ch">${esc(ai.summary)}</div>`;
+  if(ai&&ai.why_me){const w=ai.why_me,t=w.verdict==="yes"?"ok":w.verdict==="partly"?"warn":"bad";
+    h+=`<div class="panel whyme rise" style="--k:2"><div class="pill ${t}" style="font-size:18px;border-radius:12px;padding:10px 16px;font-family:var(--f-display)">${w.verdict==="yes"?"Yes":w.verdict==="partly"?"Partly":"No"}</div>
+      <div><div class="eyebrow">Does the letter answer “why me?”</div><div style="margin-top:4px">${esc(w.comment)}</div>${w.suggestion?`<div style="margin-top:6px"><b>Try adding:</b> <span style="font-family:var(--f-display);font-size:15px">${phMark(esc(w.suggestion))}</span></div>`:""}</div></div>`}
+
+  // ---- paper with highlights
+  const hotIss=ui.hot&&ui.hot.kind==="i"?ui.hot.k:null;
+  const paperCls=["paper","rise",ui.showColor?"":"nocolor",ui.showIssues?"":"noissues",ui.focus?"focus":""].join(" ");
+  let paras="",lastP=null,cur="";
+  sents.forEach(s=>{
+    if(s.p!==lastP){if(lastP!==null)paras+=`<p>${cur}</p>`;cur="";lastP=s.p}
+    const its=(sItems[s.i]||[]);const first=its[0]?itemById[its[0]]:null;
+    const on=ui.focus&&its.includes(ui.focus);
+    let inner=markWords(s.t,repSet,jdSet);
+    const iss=(sIss[s.i]||[]);
+    iss.forEach(k=>{const x=ai.issues[k];if(!x.quote)return;const q=markWords(x.quote,repSet,jdSet);const pos=inner.indexOf(q);
+      if(pos>=0)inner=inner.slice(0,pos)+`<span class="${ISSUE_TYPES[x.type].cls}${hotIss===k?" u-hot":""}">`+q+"</span>"+inner.slice(pos+q.length)});
+    inner=phMark(inner);
+    const badges=s.added?`<span class="badge new">+${esc(s.item||"")}</span>`:its.map(id=>`<span class="badge" style="--h:${itemById[id].h}">${id}</span>`).join("");
+    const tip=[...its.map(id=>id+": "+itemById[id].text),...iss.map(k=>ISSUE_TYPES[ai.issues[k].type].label+": "+ai.issues[k].fix)].join("\n");
+    cur+=`<span class="s ${first&&!s.added?"hl":""} ${s.added?"added":""} ${on?"on":""} ${ui.sel===s.i?"sel":""} ${ui.flash===s.i?"flash":""}" data-s="${s.i}" tabindex="0" title="${esc(tip)}" style="${first?`--h:${first.h}`:""}">${badges}${inner}</span> `;
+  });
+  if(lastP!==null)paras+=`<p>${cur}</p>`;
+  const flashId=ui.flash;ui.flash=null;
+
+  const tgs=[["showColor","Checklist colors"],["showIssues","Writing issues"],["showRep",`Overused words (${L.overused.length})`],["showJD","Job-ad keywords"]];
+  h+=`<div class="review"><div style="display:grid;gap:10px;min-width:0">
+    <div class="toggles">${tgs.map(([k,l])=>k==="showJD"&&!L.jd?"":`<button class="tg" data-tg="${k}" aria-pressed="${ui[k]}">${l}</button>`).join("")}${ui.focus?`<button class="tg" id="clearFocus" aria-pressed="true">Showing ${ui.focus} only ✕</button>`:""}</div>
+    <div class="legend">
+      <span><i class="sw" style="background:var(--bad)"></i>wavy: grammar</span><span><i class="sw" style="background:var(--warn)"></i>dotted: unclear</span>
+      <span><i class="sw" style="background:var(--violet)"></i>double: overpromising</span><span><i class="sw" style="background:var(--sky)"></i>dashed: job-ad echo</span>
+      <span><i class="sw" style="background:var(--ok)"></i>green: text you added</span><span><i class="sw" style="background:var(--warn-soft);border:1px solid var(--warn)"></i>[brackets]: fill in your detail</span></div>
+    <article class="${paperCls}" id="paper" style="--k:2">${paras}</article></div>
+    <aside class="side">${ui.sel!=null?selCard(sents,ai,sItems,sIss,itemById):""}
+      <div class="seg glass" role="tablist"><button role="tab" data-side="sug" aria-selected="${ui.side==="sug"}">Suggestions${ai?`<span class="n">${sugs.length}</span>`:""}</button><button role="tab" data-side="cl" aria-selected="${ui.side==="cl"}">Checklist${ai?`<span class="n">${ai.checklist.filter(c=>c.status==="met").length}/${ai.checklist.length}</span>`:""}</button></div>
+      ${ui.side==="sug"?sugPanel(ai,sugs,itemById,hist,appliedN,doc):clPanel(doc,ai,cById)}
+    </aside></div>`;
+
+  if(ai){
+    const list=(t,a,empty)=>`<div class="panel"><h3>${t}</h3>${a.length?`<ul class="clean">${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:`<p class="muted">${empty}</p>`}</div>`;
+    h+=`<section style="display:grid;gap:12px"><div class="eyebrow">What to change</div>
+      <div class="cols">${list("Highest-impact edits",ai.top_changes,"None suggested.")}${list("What it is lacking",ai.lacking,"Nothing major.")}</div>
+      <div class="cols3">
+        <div class="panel"><h3>Innovation · ${ai.scores.innovation??"–"}/10</h3><p style="margin:8px 0 0">${esc(ai.innovation_comment||"—")}</p></div>
+        <div class="panel"><h3>Feasibility · ${ai.scores.feasibility??"–"}/10</h3><p style="margin:8px 0 0">${esc(ai.feasibility_comment||"—")}</p>${L.hype.length?`<div class="chips">${L.hype.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div>`:""}</div>
+        ${list("Strengths to keep",ai.strengths,"—")}
+      </div></section>`;
+  }
+  h+=modePanels(doc,d,ai,L);
+  const fmt=[...(ai?ai.formatting:[]),...L.fmt];
+  h+=`<section style="display:grid;gap:12px"><div class="eyebrow">Writing checks</div><div class="cols3">
+      <div class="panel"><h3>Formatting and length</h3>${fmt.length?`<ul class="clean">${fmt.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:`<p class="muted">Length and structure look typical for this document.</p>`}</div>
+      <div class="panel"><h3>Repetition</h3>
+        <div class="stat"><span>Overused words <span class="muted">(${L.thr}+ uses)</span></span><b class="mono">${L.overused.length}</b></div>
+        ${L.overused.length?`<div class="chips">${L.overused.map(o=>`<span class="chip">${esc(o.w)}<b>${o.n}</b></span>`).join("")}</div>`:""}
+        <div class="stat"><span>Doubled words (“the the”)</span><b class="mono">${L.doubled.length}</b></div>
+        ${L.doubled.length?`<div class="chips">${L.doubled.map(x=>`<span class="chip" style="color:var(--bad)">${esc(x)}</span>`).join("")}</div>`:""}
+        <div class="stat"><span>Repeated sentence openers</span><b class="mono">${L.opRep.length}</b></div>
+        ${L.opRep.length?`<div class="chips">${L.opRep.map(([k,v])=>`<span class="chip">“${esc(k)}…”<b>${v}×</b></span>`).join("")}</div>`:""}
+        <div class="stat"><span>Sentences over 38 words</span><b class="mono">${L.long.length}</b></div>
+        <div class="stat"><span>Likely passive constructions</span><b class="mono">${L.passive}</b></div>
+        <div class="stat"><span>Vague or filler words</span><b class="mono">${L.vague.length}</b></div>
+        ${L.vague.length?`<div class="chips">${L.vague.map(x=>`<span class="chip">${esc(x)}</span>`).join("")}</div>`:""}
+      </div>
+      ${L.jd?`<div class="panel"><h3>Job-ad language</h3>
+        <div class="stat"><span>Key ad terms you use</span><b class="mono">${L.jd.covered.length}/${L.jd.terms.length}</b></div>
+        <div class="stat"><span>Phrases copied verbatim from the ad</span><b class="mono">${L.jd.echo.length}</b></div>
+        ${L.jd.echo.length?`<div class="chips">${L.jd.echo.slice(0,10).map(x=>`<span class="chip" style="color:var(--sky)">“${esc(x)}”</span>`).join("")}</div><p class="muted" style="font-size:12px;margin:8px 0 0">Mirroring the ad is fine for names and titles. For skills, back each echoed phrase with your own evidence instead of repeating it.</p>`:""}
+        ${L.jd.missing.length?`<div class="stat" style="border-top:1px solid var(--line);margin-top:6px"><span>Ad terms not addressed</span><span></span></div><div class="chips">${L.jd.missing.slice(0,14).map(t=>`<span class="chip">${esc(t.w)}</span>`).join("")}</div>`:""}
+      </div>`:`<div class="notice info">Add the job ad in Step 1 to check fit and keyword echoing.</div>`}
+    </div></section>`;
+  h+=aiPanel(L.ai);
+  if(MODE==="grant")h+=arsPanelHTML(arsChecks(d.text));
+  host.innerHTML=h;
+  wireDoc(doc,d,key);wireModePanels(doc,d,key);layoutLines();
+  if(anim)countUp();
+  if(flashId!=null){const el=host.querySelector(`#paper [data-s="${flashId}"]`);if(el)el.scrollIntoView({behavior:"smooth",block:"center"})}
+}
+function countUp(){const el=$("ringNum");if(!el||!el.dataset.v)return;const target=+el.dataset.v;
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;const t0=performance.now();
+  const step=t=>{const p=Math.min(1,(t-t0)/1000);el.textContent=Math.round(target*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
+function sugPanel(ai,sugs,itemById,hist,appliedN,doc){
+  if(!ai)return `<div class="panel" style="padding:14px"><p class="muted" style="margin:0">${claudeState==="ready"?"Run <b>Review with Claude</b> to get grammar fixes, clearer rewrites, and draft text for missing checklist items. Each one can be accepted with a tick.":"Suggestions need the Claude review, which runs on claude.ai."}</p></div>`;
+  const counts={};sugs.forEach(s=>counts[s.f]=(counts[s.f]||0)+1);
+  const shown=sugs.filter(s=>ui.filter==="all"||s.f===ui.filter);
+  const gram=sugs.filter(s=>s.kind==="i"&&s.f==="grammar"&&s.x.replacement);
+  let h=`<div class="row" style="justify-content:space-between"><div class="filters">${FILTERS.filter(([f])=>f==="all"||counts[f]).map(([f,l])=>`<button class="tg" data-filter="${f}" aria-pressed="${ui.filter===f}">${l}${f!=="all"?` ${counts[f]}`:""}</button>`).join("")}</div>
+    <span class="row" style="gap:6px">${gram.length>1?`<button class="btn small" id="acceptGrammar">✓ All grammar (${gram.length})</button>`:""}${hist?`<button class="btn small" id="undoBtn">Undo</button>`:""}</span></div>`;
+  if(!sugs.length)h+=`<div class="panel" style="padding:14px"><b>All suggestions handled.</b><p class="muted" style="margin:6px 0 0">Review again to re-score the revised text and catch anything new.</p></div>`;
+  h+=shown.map((s,n)=>{
+    if(s.kind==="i"){const x=s.x,T=ISSUE_TYPES[x.type];const hot=ui.hot&&ui.hot.kind==="i"&&ui.hot.k===s.k;
+      return `<div class="sug glass rise ${hot?"hot":""}" style="--k:${n+3}" data-sug="i:${s.k}">
+        <div class="h"><span class="pill" style="color:${T.color};background:var(--sunken)">${T.label}</span><button class="loc" data-goto="${x.s}">Sentence ${x.s<1000?x.s:"new"}</button></div>
+        <div class="diff">${x.quote?`<del>${esc(x.quote)}</del>`:""}${x.replacement?`<ins>${phMark(esc(x.replacement))}</ins>`:""}</div>
+        <div class="why">${esc(x.fix)}</div>
+        <div class="acts">${x.replacement?`<button class="accept" data-acc="i:${s.k}"><span class="tick">✓</span>Accept</button>`:`<button class="accept" data-done="i:${s.k}"><span class="tick">✓</span>Mark fixed</button>`}<button class="dismiss" data-dis="i:${s.k}">Dismiss</button></div></div>`}
+    const c=s.c,it=itemById[c.id];
+    return `<div class="sug glass rise" style="--k:${n+3}" data-sug="a:${c.id}">
+      <div class="h"><span class="pill ${c.status==="missing"?"bad":"warn"}"><span class="badge" style="--h:${it.h};margin:0">${c.id}</span>${c.status==="missing"?"Missing":"Partly met"}</span><button class="loc" data-goto="${c.add.after}">${c.add.after===-1?"At the start":`After sentence ${c.add.after<1000?c.add.after:"new"}`}${c.add.new_paragraph?" · new paragraph":""}</button></div>
+      <div style="font-size:13px;font-weight:600">${esc(it.text)}</div>
+      <div class="why">${esc(c.note)}</div>
+      <label class="muted" for="add-${c.id}" style="font-size:11px;font-weight:600">Draft to add (edit before accepting; fill in any [brackets])</label>
+      <textarea id="add-${c.id}" rows="${Math.min(7,Math.ceil(c.add.text.length/48)+1)}" data-addtxt="${c.id}">${esc(c.add.text)}</textarea>
+      <div class="acts"><button class="accept" data-acc="a:${c.id}"><span class="tick">✓</span>Add to statement</button><button class="dismiss" data-dis="a:${c.id}">Dismiss</button></div></div>`;
+  }).join("");
+  if(appliedN){
+    const acc=ai.issues.filter(x=>x.state==="accepted"),add=ai.checklist.filter(c=>c.applied);
+    h+=`<details class="panel" style="padding:12px"><summary style="cursor:pointer;font-weight:700">Applied (${appliedN})</summary><div class="applied" style="margin-top:8px">
+      ${acc.map(x=>`<div><span class="pill ok">✓</span><span>${esc(ISSUE_TYPES[x.type].label)}: “${esc(x.replacement.slice(0,70))}${x.replacement.length>70?"…":""}”</span></div>`).join("")}
+      ${add.map(c=>`<div><span class="pill ok">✓</span><span>Added text for ${c.id}</span></div>`).join("")}</div></details>`;
+  }
+  return h;
+}
+function clPanel(doc,ai,cById){
+  return `<div class="panel" style="padding:12px">${ai?`<div class="muted" style="font-size:12px;margin:0 0 8px 4px">${ai.checklist.filter(c=>c.status==="met").length} met · ${ai.checklist.filter(c=>c.status==="partial").length} partial · ${ai.checklist.filter(c=>c.status==="missing").length} missing · click an item to show its sentences</div>`:""}
+    <div class="cl">${doc.items.map((it,ix)=>{const c=cById[it.id];const st=c?c.status:"unrev";
+      return `${it.group&&(ix===0||doc.items[ix-1].group!==it.group)?`<div class="grp">${esc(GROUP_NAMES[it.group]||it.group)}</div>`:""}<button class="ci ${ui.focus===it.id?"on":""}" data-item="${it.id}" style="--h:${it.h}"><span class="box ${st==="met"?"":st}">${st==="met"?"✓":""}</span>
+      <span class="t"><b>${it.id}</b>${esc(it.text)}${c?`<div class="n">${c.status==="met"?"Met":c.status==="partial"?"Partly":"Missing"}${c.applied?" · text added, review again":""}${c.sentences.length?` · ${c.sentences.length} sentence${c.sentences.length>1?"s":""}`:""}${c.note?" · "+esc(c.note):""}</div>`:""}</span></button>`}).join("")}</div></div>`;
+}
+function markWords(t,repSet,jdSet){
+  return t.split(/([A-Za-z][A-Za-z'’-]*[A-Za-z]|[A-Za-z])/).map((p,i)=>{
+    if(i%2===0)return esc(p);const lw=p.toLowerCase(),k=stem(lw);
+    if(ui.showRep&&lw.length>3&&!STOP.has(lw)&&repSet.has(k))return`<mark class="rep">${esc(p)}</mark>`;
+    if(ui.showJD&&lw.length>3&&!STOP.has(lw)&&jdSet.has(k))return`<mark class="jdk">${esc(p)}</mark>`;
+    return esc(p)}).join("").replace(/\b([A-Za-z]+)(\s+)\1\b/gi,(m,a)=>/^(had|that)$/i.test(a)?m:`<mark class="dup">${m}</mark>`);
+}
+function selCard(sents,ai,sItems,sIss,itemById){
+  const s=sents.find(z=>z.i===ui.sel);if(!s)return"";
+  const its=sItems[s.i]||[],iss=(sIss[s.i]||[]).map(k=>ai.issues[k]);
+  return `<div class="selcard glass"><div class="row" style="justify-content:space-between"><span class="eyebrow" data-lineof="${s.i}">${s.added?"Added text":"Sentence "+s.i}</span><button class="btn small" id="closeSel">Close</button></div>
+    <q>${esc(s.t)}</q>
+    ${its.length?`<div><b>Covers:</b>${its.map(id=>`<div style="margin-top:4px"><span class="badge" style="--h:${itemById[id].h}">${id}</span>${esc(itemById[id].text)}</div>`).join("")}</div>`:ai?`<div class="muted">Not linked to any checklist item. If it adds nothing, cut it.</div>`:""}
+    ${iss.map(x=>`<div><b style="color:${ISSUE_TYPES[x.type].color}">${ISSUE_TYPES[x.type].label}:</b> ${esc(x.fix)}</div>`).join("")}
+    <div class="muted" style="font-size:12px">${words(s.t).length} words</div></div>`;
+}
+function inputView(doc,d){
+  return `<div class="input-area"><div><div class="eyebrow">${d.text.trim()?"Editing":"Add your"}</div><h2>${esc(doc.label)}</h2></div>
+    <label class="drop" id="drop" for="file"><b>Drop a file here or click to upload</b><span class="muted">.docx, .pdf, .zip, .txt or .md — read in your browser. A combined file is split by its headings.</span>
+      <input type="file" id="file" multiple accept=".docx,.pdf,.zip,.txt,.md,.doc,text/plain,application/zip" hidden></label>
+    <div id="fileMsg"></div>
+    <label for="paste" class="muted" style="font-size:12px;font-weight:600">Or paste the text</label>
+    <textarea id="paste" rows="14" placeholder="Paste your ${esc(doc.label.toLowerCase())} here. Keep paragraph breaks.">${esc(d.text)}</textarea>
+    <div class="row"><button class="btn primary" id="useText">Save text</button>${d.text.trim()?`<button class="btn" id="cancelEdit">Cancel</button><button class="btn" id="removeDoc">Remove this statement</button>`:""}
+    <span class="muted" style="font-size:12px">Typical length: ${doc.range[0]}–${doc.range[1]} words (${doc.pages}).</span></div></div>`;
+}
+function wireInput(doc,d){
+  const key=doc.key;
+  const setText=(t,name)=>{d.text=t.replace(/\u00a0/g," ").trim();d.name=name||"Pasted text";d.err=null;ui.editing[key]=false;ui.sel=null;ui.focus=null;if(S.example)S.example=false;save();renderAll()};
+  $("useText").onclick=()=>{const t=$("paste").value;if(!t.trim()){$("fileMsg").innerHTML=`<div class="notice">Paste some text or upload a file first.</div>`;return}setText(t,d.text.trim()?d.name:"Pasted text")};
+  if($("cancelEdit"))$("cancelEdit").onclick=()=>{ui.editing[key]=false;renderDoc()};
+  if($("removeDoc"))$("removeDoc").onclick=()=>{S.docs[key]=emptyDoc();ui.editing[key]=false;save();renderAll()};
+  const handle=fl=>{if(fl&&fl.length)importFiles(fl,key)};
+  $("file").onchange=e=>handle(e.target.files);
+  const dr=$("drop");
+  dr.ondragover=e=>{e.preventDefault();dr.classList.add("over")};dr.ondragleave=()=>dr.classList.remove("over");
+  dr.ondrop=e=>{e.preventDefault();dr.classList.remove("over");handle(e.dataTransfer.files)};
+}
+function leaveThen(btn,fn){const card=btn.closest(".sug");if(card&&!matchMedia("(prefers-reduced-motion: reduce)").matches){card.classList.add("leaving");setTimeout(fn,300)}else fn()}
+function wireDoc(doc,d,key){
+  const q=s=>document.querySelectorAll(s);
+  if($("runBtn"))$("runBtn").onclick=()=>review(key,!!d.ai);
+  if($("stopBtn"))$("stopBtn").onclick=()=>ui.running[key]&&ui.running[key].abort();
+  $("editBtn").onclick=()=>{ui.editing[key]=true;renderDoc()};
+  $("replaceBtn").onclick=()=>{ui.editing[key]=true;renderDoc();setTimeout(()=>{const p=$("paste");if(p){p.value="";p.focus()}},0)};
+  q("[data-tg]").forEach(b=>b.onclick=()=>{ui[b.dataset.tg]=!ui[b.dataset.tg];renderDoc()});
+  q("[data-side]").forEach(b=>b.onclick=()=>{ui.side=b.dataset.side;renderDoc()});
+  q("[data-filter]").forEach(b=>b.onclick=()=>{ui.filter=b.dataset.filter;renderDoc()});
+  if($("clearFocus"))$("clearFocus").onclick=()=>{ui.focus=null;renderDoc()};
+  q("[data-item]").forEach(b=>b.onclick=()=>{ui.focus=ui.focus===b.dataset.item?null:b.dataset.item;renderDoc()});
+  q("#paper .s").forEach(el=>{const f=()=>{ui.sel=Number(el.dataset.s);renderDoc()};el.onclick=f;el.onkeydown=e=>{if(e.key==="Enter")f()}});
+  if($("closeSel"))$("closeSel").onclick=()=>{ui.sel=null;renderDoc()};
+  q("[data-goto]").forEach(b=>b.onclick=()=>{const card=b.closest(".sug");const [kind,ref]=card.dataset.sug.split(":");ui.hot={kind,k:kind==="i"?+ref:ref};ui.sel=+b.dataset.goto>=0?+b.dataset.goto:null;renderDoc();
+    const el=document.querySelector(`#paper [data-s="${b.dataset.goto}"]`);if(el)el.scrollIntoView({behavior:"smooth",block:"center"})});
+  q("[data-acc]").forEach(b=>b.onclick=()=>{const [kind,ref]=b.dataset.acc.split(":");
+    if(kind==="i"){leaveThen(b,()=>{if(applyIssue(key,+ref))toast("Fix applied","undo");renderAll()})}
+    else{const txt=document.querySelector(`[data-addtxt="${ref}"]`).value;
+      if(/\[[^\]]+\]/.test(txt))toast("Added. Fill in the [bracketed] details in the text.","undo");else toast("Text added","undo");
+      leaveThen(b,()=>{applyAdd(key,ref,txt);renderAll()})}});
+  q("[data-done]").forEach(b=>b.onclick=()=>{const k=+b.dataset.done.split(":")[1];leaveThen(b,()=>{const ai=validAi(d);snapshot(key);ai.issues[k].state="accepted";ai.issues[k].replacement=ai.issues[k].replacement||"";save();renderAll()})});
+  q("[data-dis]").forEach(b=>b.onclick=()=>{const [kind,ref]=b.dataset.dis.split(":");leaveThen(b,()=>{dismiss(kind,key,kind==="i"?+ref:ref);renderAll()})});
+  if($("acceptGrammar"))$("acceptGrammar").onclick=()=>{const ai=validAi(d);let n=0;ai.issues.forEach((x,k)=>{if(!x.state&&x.type==="grammar"&&x.replacement&&applyIssue(key,k))n++});toast(`${n} grammar fix${n===1?"":"es"} applied`,"undo");renderAll()};
+  if($("undoBtn"))$("undoBtn").onclick=()=>undo(key);
+  if($("copyText"))$("copyText").onclick=async()=>{try{await navigator.clipboard.writeText(d.text);toast("Revised text copied")}catch(e){ui.editing[key]=true;renderDoc();const p=$("paste");if(p){p.focus();p.select()}toast("Select all and copy")}};
+  if($("dlText"))$("dlText").onclick=async()=>{try{await dlFn.save({filename:`${doc.label.replace(/\W+/g,"_")}_revised.txt`,data:d.text})}catch(e){if(e&&e.code!=="cancelled")toast("Download didn't start. Use Copy revised text instead.")}};
+}
+function renderAll(){renderModes();if(ALL.mode==="refs"||ALL.mode==="funding"){$("exampleBar").hidden=true;renderDoc();return}$("exampleBar").hidden=!S.example;renderPos();renderStrip();renderDup();renderDoc()}
+
+/* ---------------- line numbers ---------------- */
+function layoutLines(){
+  const paper=$("paper");if(!paper)return;
+  let g=paper.querySelector(".gutter");if(!g){g=document.createElement("div");g.className="gutter";g.setAttribute("aria-hidden","true");paper.prepend(g)}
+  const pr=paper.getBoundingClientRect();const tops=[];const rng=document.createRange();
+  const ps=[...paper.querySelectorAll("p")];ui.pLine={};
+  ps.forEach((p,k)=>{rng.selectNodeContents(p);[...rng.getClientRects()].forEach(r=>{if(r.width<1)return;const t=Math.round(r.top-pr.top);if(!tops.some(x=>Math.abs(x-t)<Math.max(6,r.height*.5)))tops.push(t)})});
+  tops.sort((a,b)=>a-b);
+  const lineAt=y=>{let i=0;while(i+1<tops.length&&tops[i+1]<=y+4)i++;return i+1};
+  ps.forEach((p,k)=>{rng.selectNodeContents(p);const r=rng.getClientRects()[0];if(r)ui.pLine[p.dataset.p??k]=lineAt(Math.round(r.top-pr.top))});
+  ui.lineOf={};paper.querySelectorAll("[data-s]").forEach(el=>{const r=[...el.getClientRects()].find(x=>x.width>1);if(r)ui.lineOf[el.dataset.s]=lineAt(Math.round(r.top-pr.top))});
+  g.innerHTML=tops.map((t,i)=>`<span style="top:${t+9}px">${i+1}</span>`).join("");
+  document.querySelectorAll("[data-goto]").forEach(b=>{const n=ui.lineOf[b.dataset.goto];if(n)b.textContent=b.textContent.replace(/(after )?sentence (\d+|new)/i,(m,a)=>(a?"After line ":"Line ")+n)});
+  document.querySelectorAll("[data-lineof]").forEach(e=>{const n=ui.lineOf[e.dataset.lineof];if(n)e.textContent="Line "+n});
+  document.querySelectorAll("[data-pline]").forEach(e=>{const n=ui.pLine[e.dataset.pline];e.textContent=n?"Line "+n:""});
+}
+{let t;addEventListener("resize",()=>{clearTimeout(t);t=setTimeout(layoutLines,150)})}
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>layoutLines());
+
+/* ---------------- modes ---------------- */
+function renderModes(){
+  $("modes").innerHTML=MODE_TABS.map(([k,l])=>`<button role="tab" data-mode="${k}" aria-selected="${ALL.mode===k}">${l}</button>`).join("");
+  $("modes").querySelectorAll("[data-mode]").forEach(b=>b.onclick=()=>switchMode(b.dataset.mode));
+}
+function switchMode(m){
+  ALL.mode=m;const docMode=m!=="refs"&&m!=="funding";if(docMode){setModeVars(m);S=ALL.modes[m];if(!S.active||(!DOCMAP[S.active]&&!String(S.active).startsWith("tool:")))S.active=DOCS[0].key}
+  Object.assign(ui,{focus:null,sel:null,hot:null,animKey:null,imp:null,cmpBusy:false});
+  $("stdArea").hidden=!docMode;$("modeBlurb").textContent=MODE_BLURB[m];
+  $("upHint").textContent={faculty:"Statements inside a combined file are found by their headings (e.g. “Teaching Statement”, “Dear Search Committee”). You confirm where each part goes.",
+    resume:"Each file is one document. Files named or starting like a cover letter go to Cover Letter; everything else goes to Resume. You confirm before anything is added.",
+    grant:"Each file is one part. Files are matched to Project Narrative, Specific Aims, Budget Justification or Data Management Plan by name and content. Upload the funding agency's RFA in Step 1."}[m]||"";
+  $("upHead").textContent={faculty:"One combined file, several files, or a .zip",resume:"Your resume and cover letter (.docx, .pdf or .zip)",grant:"Proposal files (.docx, .pdf or .zip)"}[m]||"";
+  $("reviewAll").hidden=m==="funding";$("depth").hidden=m==="funding";$("copyReport").hidden=m==="funding";$("dlAll").textContent=m==="funding"?"Download list (.csv)":"Download all (.zip)";
+  $("upEyebrow").textContent="Step 2 · "+({faculty:"Upload your packet",resume:"Upload your resume and cover letter",grant:"Upload your proposal files"}[m]||"");
+  $("step3").textContent="Step 3 · "+({faculty:"Review each statement",resume:"Review your resume",grant:"Review each part of the proposal"}[m]||"");
+  $("reviewAll").textContent=m==="refs"?"Check references":m==="grant"?"Review all parts":m==="resume"?"Review resume":"Review all statements";
+  if(docMode)$("posPanel").open=!S.job.ad.trim()||m==="grant"&&!S.rfa;
+  save();renderAll();
+}
+function mapImportType(name,text,hint){
+  if(hint)return hint;
+  if(MODE==="resume")return/cover|letter/i.test(name)||/^\s*dear\b/i.test(text.slice(0,400))?"icover":"resume";
+  const t=name+" "+text.slice(0,400);
+  return/specific aims|project summary|abstract/i.test(t)?"aims":/budget/i.test(t)?"budget":/data management|\bdmp\b/i.test(t)?"dmp":"proposal";
+}
+
+/* ---------------- mode-specific panels inside a document ---------------- */
+function auditBar(label,v){const p=v==null?0:v*10;return`<div class="sub"><div class="l"><span>${label}</span><b>${v??"–"}/10</b></div><div class="bar"><i class="${p>=75?"hi":p>=55?"mid":"lo"}" style="width:${p}%"></i></div></div>`}
+function modePanels(doc,d,ai,L){
+  let h="";
+  if(MODE==="grant"&&(doc.key==="proposal"||(ai&&ai.rfa_compliance&&ai.rfa_compliance.length)))h+=rfaComplianceHTML(ai,d);
+  if(MODE==="grant")h+=panelHTML(doc,d);
+  if(MODE==="grant"&&ai&&ai.audit){const A=ai.audit;
+    h+=`<section class="panel" style="display:grid;gap:12px"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">Overpromising check</div><h3>Can this team deliver this, in this time, for this money?</h3></div><button class="btn small" data-open-tool="budget">Open budget calculator</button></div>
+      ${A.verdict?`<div style="font-family:var(--f-display);font-size:17px">${esc(A.verdict)}</div>`:""}
+      <div class="cols3">${[["Expertise","expertise"],["Timeline","timeline"],["Cost","cost"]].map(([l,k])=>`<div style="display:grid;gap:6px">${auditBar(l+" realism",A[k].score)}${A[k].items.length?`<ul class="clean" style="margin:0">${A[k].items.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:`<span class="muted">No issues found.</span>`}</div>`).join("")}</div>
+      ${A.claims.length?`<div><b>Claims that promise too much</b>${A.claims.map(c=>`<div class="issue" style="grid-template-columns:minmax(0,1fr)"><div class="q">“${esc(c.quote)}”</div><div class="fix">${esc(c.why)}</div></div>`).join("")}</div>`:""}
+      <div class="muted" style="font-size:12px">Budget used for this check: ${esc(budgetSummary(ALL.budget))}</div></section>`}
+  if(MODE==="grant"&&doc.key==="proposal"){
+    const figs=ui.figs[doc.key]||[];const fa=d.figAi;const src=ui.srcFiles[d.name];
+    h+=`<section class="panel" style="display:grid;gap:12px"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">Figures</div><h3>Figure quality and innovation</h3></div>
+      <span class="row">${src&&/\.(pdf|docx)$/i.test(d.name)?`<button class="btn small" id="figFind">Find figures in ${esc(d.name)}</button>`:""}
+      <label class="btn small" for="figUp">Add figure images</label><input type="file" id="figUp" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden>
+      ${figs.length?`<button class="btn small primary" id="figRun" ${ui.figBusy||claudeState!=="ready"?"disabled":""}>${ui.figBusy?"Reviewing…":"Review figures with Claude"}</button>`:""}</span></div>
+      ${!figs.length&&!fa?`<p class="muted" style="margin:0">${src?"Find the figures in your uploaded file, or add figure images.":"Add figure images, or upload the proposal PDF/DOCX again to pull its figures."} Each figure is checked for labeled axes and units, legend, readable fonts, truncated text, distinguishable colors, chart junk, uncertainty, caption, and relevance, then scored for clarity, readability, relevance and innovation.</p>`:""}
+      ${figs.length?`<div class="figgrid">${figs.map((f,i)=>{const r=fa&&fa.figures?fa.figures.find(x=>+x.n===i+1):null;return`<div class="fig glass"><img src="${f.url}" alt="${esc(f.label)}"><div class="row" style="justify-content:space-between"><b>#${i+1} · ${esc(f.label)}</b><button class="dismiss" data-figdel="${i}" aria-label="Remove">✕</button></div>${r?figResult(r):""}</div>`}).join("")}</div>`:""}
+      ${fa&&!figs.length&&fa.figures?`<div class="figgrid">${fa.figures.map((r,i)=>`<div class="fig glass"><b>#${r.n} · ${esc((fa.labels||[])[i]||"")}</b>${figResult(r)}</div>`).join("")}</div>`:""}
+      ${fa&&fa.overall?`<div class="notice info">${esc(fa.overall)}</div>`:""}</section>`}
+  if(MODE==="resume"&&doc.key==="resume"){const m=d.meta||{};const has=k=>m[k]!=null;
+    const rows=[["File type",m.type?m.type.toUpperCase():"pasted text",m.type==="docx"||m.type==="pdf"?"ok":"warn"],
+      ["Tables",has("tables")?m.tables:"unknown",m.tables?"bad":has("tables")?"ok":""],["Images / icons",has("images")?m.images:"unknown",m.images?"bad":has("images")?"ok":""],
+      ["Multi-column layout",m.fromPdf?(m.columns?"likely":"no"):"unknown",m.columns?"bad":m.fromPdf?"ok":""],["Contact info in header/footer",m.fromPdf?(m.headerText?"yes":"no"):"unknown",m.headerText?"bad":m.fromPdf?"ok":""],
+      ["Pages",m.pages??"unknown",m.pages>2?"warn":m.pages?"ok":""],["Text extracts cleanly",L.n>150?"yes":"little text found",L.n>150?"ok":"bad"]];
+    h+=`<section class="panel"><div class="eyebrow">Measured from your file</div><h3>ATS parsing check</h3><div class="btable" style="margin-top:8px"><table><tbody>${rows.map(([k,v,t])=>`<tr><td>${k}</td><td class="mono">${esc(v)}</td><td>${t?`<span class="pill ${t}">${t==="ok"?"Pass":t==="warn"?"Check":"Fix"}</span>`:""}</td></tr>`).join("")}</tbody></table></div>
+      <p class="muted" style="font-size:12px;margin:8px 0 0">These are read from the uploaded file itself. Pasted text can't show layout, so upload the .docx or PDF for this check.</p></section>`}
+  return h;
+}
+function figResult(r){const s=r.scores||{};const fails=(r.checks||[]).filter(c=>c.pass===false);
+  return `${["clarity","readability","relevance","innovation"].map(k=>auditBar(k[0].toUpperCase()+k.slice(1),s[k])).join("")}
+   ${fails.length?`<div style="font-size:12px"><b>Fails:</b> ${fails.map(c=>esc(c.item)).join("; ")}</div>`:`<div class="pill ok">All checks pass</div>`}
+   ${(r.issues||[]).length?`<ul class="clean" style="margin:0;font-size:12.5px">${r.issues.slice(0,4).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}${r.fix?`<div style="font-size:12.5px"><b>Fix:</b> ${esc(r.fix)}</div>`:""}`}
+function aiPanel(sc){
+  return `<section style="display:grid;gap:12px"><div class="eyebrow">AI and copy-paste signals</div><div class="cols">
+   <div class="panel"><h3>Copy-paste artifacts</h3>${sc.invis.length||sc.artifacts.length||sc.nbsp>5?`<ul class="clean">${sc.invis.map(x=>`<li><b>${x.n}</b> × ${esc(x.name)} <span class="chipx">${x.code}</span></li>`).join("")}${sc.artifacts.map(a=>`<li><b>${a.n}</b> × ${esc(a.label)} <span class="muted">e.g. “${esc(a.ex)}”</span></li>`).join("")}${sc.nbsp>5?`<li><b>${sc.nbsp}</b> × non-breaking spaces</li>`:""}</ul><p class="muted" style="font-size:12px;margin:8px 0 0">Hidden characters and chat markers survive copy-paste and can be spotted by readers and screening tools. Use <b>References &amp; AI check → Clean text</b> to strip them.</p>`:`<p class="muted" style="margin:0">No hidden characters or chat markers found.</p>`}</div>
+   <div class="panel"><h3>AI-typical wording</h3>${sc.flagged.length?`<div class="chips">${sc.flagged.map(f=>`<span class="chip" title="Try: ${esc(f.alt)}">${esc(f.t)}<b>${f.n}</b></span>`).join("")}</div>`:`<p class="muted" style="margin:0">None of the flagged terms found.</p>`}
+    ${sc.openers.length?`<div class="stat" style="margin-top:8px"><span>Throat-clearing openers</span><b class="mono">${sc.openers.reduce((a,b)=>a+b.n,0)}</b></div><div class="chips">${sc.openers.map(o=>`<span class="chip">“${esc(o.t)}…”</span>`).join("")}</div>`:""}
+    <div class="stat"><span>Em dashes per 1,000 words</span><b class="mono">${sc.emdash.per1k}</b></div>
+    ${sc.surprise.length?`<div class="stat"><span>“Surprisingly / unexpectedly” framing</span><b class="mono">${sc.surprise.reduce((a,b)=>a+b.n,0)}</b></div>`:""}
+    <p class="muted" style="font-size:12px;margin:8px 0 0">Word list from the academic-research-skills writing check. These are prompts for judgment, not proof of AI use: keep a term when it is the most precise word.</p></div></div></section>`;
+}
+function wireModePanels(doc,d,key){
+  document.querySelectorAll("[data-open-tool]").forEach(b=>b.onclick=()=>{S.active="tool:"+b.dataset.openTool;save();renderStrip();renderDoc()});
+  const ff=$("figFind");if(ff)ff.onclick=async()=>{ff.disabled=true;ff.textContent="Looking for figures…";try{ui.figs[key]=await extractFigures(ui.srcFiles[d.name]);if(!ui.figs[key].length)toast("No figures found. Add figure images instead.")}catch(e){toast("Couldn't read figures from this file.")}renderDoc()};
+  const fu=$("figUp");if(fu)fu.onchange=()=>{const a=ui.figs[key]=ui.figs[key]||[];[...fu.files].forEach(f=>a.push({blob:f,url:URL.createObjectURL(f),label:f.name}));renderDoc()};
+  document.querySelectorAll("[data-figdel]").forEach(b=>b.onclick=()=>{ui.figs[key].splice(+b.dataset.figdel,1);renderDoc()});
+  const fr=$("figRun");if(fr)fr.onclick=async()=>{const lim=await sampleFn.limits().catch(()=>null);if(!lim||!lim.images){toast("Image review isn't available in this view.");return}
+    const use=ui.figs[key].slice(0,lim.images.maxCount);ui.figBusy=true;renderDoc();
+    try{const r=await sampleFn.json(figuresPrompt(use,d.text),{images:use.map(f=>f.blob)});d.figAi={figures:Array.isArray(r.figures)?r.figures:[],overall:String(r.overall||""),labels:use.map(f=>f.label)};save()}
+    catch(e){if(e&&e.code==="not_granted"){claudeState="denied";renderClaudeBar()}if(!(e&&e.code==="cancelled"))toast(ERR[e&&e.code]||"Figure review failed. Try again.")}
+    finally{ui.figBusy=false;renderDoc()}};
+  if(MODE==="grant")wirePanel(key);
+  const dl=$("dlDoc");if(dl)dl.onclick=async()=>{dl.disabled=true;try{await saveFile(fileSafe(doc.label)+"_revised.docx",await makeDocx(d.text))}finally{dl.disabled=false}};
+}
+
+/* ---------------- tools: budget + funded comparison ---------------- */
+function renderTool(name){
+  const host=$("doc");host.classList.remove("anim");
+  if(name==="budget"){host.innerHTML=`<div><div class="eyebrow">Grant proposal</div><h2>Budget calculator</h2><p class="muted" style="margin:4px 0 0;max-width:80ch">Add people by headcount, equipment with vendor links, and other costs. Salaries escalate yearly, fringe and tuition are added, and F&amp;A is charged on modified total direct costs (MTDC), which leave out equipment of $5,000+ per unit, tuition, participant support and subaward amounts over $25,000. The totals feed the overpromising check.</p></div>${renderBudget(ALL.budget)}`;
+    wireBudget(ALL.budget,()=>{renderTool("budget");renderStrip()});return}
+  renderCompare();
+}
+function renderCompare(){
+  const host=$("doc");const mine=(S.docs.proposal.text||"")+"\n"+(S.docs.aims.text||"");const exs=ALL.examples;const field=S.job.univ||"";
+  let h=`<div><div class="eyebrow">Grant proposal</div><h2>Compare with funded proposals</h2><p class="muted" style="margin:4px 0 0;max-width:80ch">Add recently funded proposals in your field. The page can't search the web itself, so download a few from the sources below and drop them here. Examples from the last 3 years and closer to your topic get more weight.</p></div>
+   <div class="panel"><h3>Where to find funded proposals</h3><ul class="clean">${FUNDED_SOURCES.map(([n,u,dsc])=>`<li><a href="${u}" target="_blank" rel="noopener">${esc(n)}</a> <span class="muted">· ${esc(dsc)}</span></li>`).join("")}</ul></div>
+   <label class="drop" id="exDrop" for="exFile" style="padding:16px"><b>Drop funded proposals here or click to choose</b><span class="muted">.pdf, .docx, .txt or a .zip · full text, aims page, or abstract</span><input type="file" id="exFile" multiple accept=".pdf,.docx,.txt,.md,.zip" hidden></label>`;
+  if(exs.length){
+    h+=`<div class="panel"><h3>Funded examples (${exs.length})</h3><div class="btable"><table><thead><tr><th>Proposal</th><th>Year</th><th>Agency</th><th>Field</th><th>Recency</th><th>Topic match</th><th>Weight</th><th></th></tr></thead><tbody>
+     ${exs.map((e,i)=>{const w=mine.trim()?exampleWeight(e,mine,field):{rec:0,sim:0,w:0};return`<tr><td style="min-width:160px">${esc(e.name)}<div class="muted" style="font-size:11px">${words(e.text).length} words</div></td><td><input type="number" class="bin" data-ex="${i}.year" value="${esc(e.year)}" style="width:76px" aria-label="Year"></td><td><input type="text" class="bin" data-ex="${i}.agency" value="${esc(e.agency)}" style="width:90px" aria-label="Agency"></td><td><input type="text" class="bin" data-ex="${i}.field" value="${esc(e.field)}" style="width:140px" aria-label="Field"></td>
+       <td><span class="pill ${w.rec===1?"ok":w.rec>=.6?"warn":"bad"}">${e.year?NOW_Y-e.year+" yr":"?"}</span></td><td class="mono">${Math.round(w.sim*100)}%</td><td style="min-width:90px"><div class="bar"><i style="width:${w.w*100}%"></i></div></td><td><button class="dismiss" data-exdel="${i}">✕</button></td></tr>`}).join("")}</tbody></table></div></div>`}
+  if(!S.docs.proposal.text.trim())h+=`<div class="notice">Add your Project Narrative first (Step 2 or the Project Narrative tab) to compare it.</div>`;
+  else if(exs.length){
+    const T=compareTable(mine,exs,field);
+    h+=`<div class="panel"><h3>Your proposal against funded examples</h3><div class="btable"><table><thead><tr><th>Metric</th><th>Yours</th><th>Funded (weighted median)</th><th>Funded range</th><th></th></tr></thead><tbody>
+      ${T.rows.map(r=>`<tr><td>${r.l}</td><td class="mono"><b>${r.v}</b></td><td class="mono">${r.med??"—"}</td><td class="mono">${isFinite(r.lo)?`${r.lo} – ${r.hi}`:"—"}</td><td>${r.status?`<span class="pill ${r.status}">${r.status==="ok"?"In range":"Outside range"}</span>`:""}</td></tr>`).join("")}</tbody></table></div>
+      <div style="margin-top:10px"><b>Sections</b><div class="chips">${SECTION_CUES.map(([k])=>{const share=Math.round(T.exs.filter(x=>x.m.sections.includes(k)).length/T.exs.length*100);const mineHas=T.mm.sections.includes(k);return`<span class="chip" style="${!mineHas&&share>=50?"border-color:var(--bad);color:var(--bad)":""}">${mineHas?"✓":"✕"} ${k}<b>${share}%</b></span>`}).join("")}</div><p class="muted" style="font-size:12px;margin:6px 0 0">✓/✕ = in your proposal · % = share of funded examples that have it. Red = most funded examples have it and yours does not.</p></div></div>`;
+    const C=ALL.cmpAi&&ALL.cmpAi.hash===hash(mine+exs.map(e=>e.name).join())?ALL.cmpAi:null;
+    h+=`<div class="row"><button class="btn primary" id="cmpRun" ${ui.cmpBusy||claudeState!=="ready"?"disabled":""}>${ui.cmpBusy?"Comparing…":C?"Compare again":"Compare with Claude"}</button><span class="muted" style="font-size:12px">Sends your proposal and the 3 highest-weighted examples.</span></div>`;
+    if(C){h+=`<div class="panel" style="display:grid;gap:12px"><h3>Side-by-side judgment</h3>
+      <div class="subs">${(C.dimensions||[]).map(x=>`<div class="sub"><div class="l"><span>${esc(x.name)}</span><b>${x.draft??"–"} vs ${x.funded??"–"}</b></div><div class="bar"><i style="width:${(+x.draft||0)*10}%"></i></div><div class="bar"><i style="width:${(+x.funded||0)*10}%;background:var(--muted)"></i></div><div class="muted" style="font-size:11.5px">${esc(x.note||"")}</div></div>`).join("")}</div>
+      <div class="muted" style="font-size:12px">Top bar: your draft · grey bar: typical funded example.</div>
+      ${C.overpromising?`<div class="notice">${esc(C.overpromising)}</div>`:""}
+      <div class="cols3">${[["What funded proposals do better",C.funded_do_better],["Your strengths",C.draft_strengths],["Recommendations",C.recommendations]].map(([t,a])=>`<div><b>${t}</b><ul class="clean">${(a||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`).join("")}</div></div>`}
+  }
+  host.innerHTML=h;
+  const handle=async fl=>{const {files,errs}=await expandFiles([...fl]);files.forEach(f=>{if(f.text&&f.text.trim())ALL.examples.push({name:f.name,text:f.text.slice(0,60000),year:guessYear(f.text),agency:guessAgency(f.text),field})});if(errs.length)toast(errs[0]);save();renderCompare();renderStrip()};
+  $("exFile").onchange=e=>handle(e.target.files);const dr=$("exDrop");
+  dr.ondragover=e=>{e.preventDefault();dr.classList.add("over")};dr.ondragleave=()=>dr.classList.remove("over");dr.ondrop=e=>{e.preventDefault();dr.classList.remove("over");handle(e.dataTransfer.files)};
+  document.querySelectorAll("[data-ex]").forEach(el=>el.onchange=()=>{const [i,k]=el.dataset.ex.split(".");ALL.examples[+i][k]=k==="year"?+el.value||"":el.value;save();renderCompare()});
+  document.querySelectorAll("[data-exdel]").forEach(b=>b.onclick=()=>{ALL.examples.splice(+b.dataset.exdel,1);save();renderCompare();renderStrip()});
+  const cr=$("cmpRun");if(cr)cr.onclick=async()=>{ui.cmpBusy=true;renderCompare();
+    try{const T=compareTable(mine,exs,field);const r=await sampleFn.json(comparePrompt(mine,T.exs,S.job),{modelTier:$("depth").value});ALL.cmpAi={...r,hash:hash(mine+exs.map(e=>e.name).join())};save()}
+    catch(e){if(!(e&&e.code==="cancelled"))toast(ERR[e&&e.code]||"Comparison failed. Try again.")}finally{ui.cmpBusy=false;renderCompare()}};
+}
+
+/* ---------------- references & AI check mode ---------------- */
+function renderRefs(){
+  const R=ALL.refs;const host=$("doc");host.classList.remove("anim");
+  if(!R.text.trim()||ui.editing.refs){
+    host.innerHTML=`<div class="input-area"><div><div class="eyebrow">References &amp; AI check</div><h2>Add an article, paper or proposal</h2></div>
+      <label class="drop" id="drop" for="file"><b>Drop a file here or click to upload</b><span class="muted">.docx, .pdf, .txt, .md or .zip. Paste the text instead to catch hidden characters a PDF may drop.</span><input type="file" id="file" multiple accept=".docx,.pdf,.zip,.txt,.md" hidden></label><div id="fileMsg"></div>
+      <label for="paste" class="muted" style="font-size:12px;font-weight:600">Or paste the text (include the reference list)</label>
+      <textarea id="paste" rows="14" placeholder="Paste the full text, including References.">${esc(R.text)}</textarea>
+      <div class="row"><button class="btn primary" id="useText">Check this text</button>${R.text.trim()?`<button class="btn" id="cancelEdit">Cancel</button>`:""}</div></div>`;
+    const set=(t,n)=>{R.hist=R.hist||[];R.text=t;R.name=n;R.ai=null;ui.editing.refs=false;save();renderDoc()};
+    $("useText").onclick=()=>{const t=$("paste").value;if(t.trim())set(t,"Pasted text")};
+    if($("cancelEdit"))$("cancelEdit").onclick=()=>{ui.editing.refs=false;renderDoc()};
+    const handle=async fl=>{$("fileMsg").innerHTML=`<div class="notice info dots">Reading</div>`;const {files,errs}=await expandFiles([...fl]);if(errs.length)$("fileMsg").innerHTML=`<div class="notice bad">${errs.map(esc).join("<br>")}</div>`;if(files.length)set(files.map(f=>f.text).join("\n"),files.map(f=>f.name).join(", "))};
+    $("file").onchange=e=>handle(e.target.files);const dr=$("drop");dr.ondragover=e=>{e.preventDefault();dr.classList.add("over")};dr.ondragleave=()=>dr.classList.remove("over");dr.ondrop=e=>{e.preventDefault();dr.classList.remove("over");handle(e.dataTransfer.files)};
+    return}
+  const sc=aiScan(R.text);const P=parseRefs(R.text);const refs=P.refs;const X=P.found?crossCheck(P.body,refs):null;
+  const unusedSet=new Set(X&&X.cites.length?X.unused.map(r=>r.n):[]);
+  const flags=refs.map(r=>[...refLocalFlags(r,null,refs).filter(f=>f!=="Duplicate entry"),...(unusedSet.has(r.n)?["Never cited in the text"]:[]),
+    ...(arsPreprintFlag(r)?["Preprint from 2024 or later (post-LLM period): check it was published and says what is cited"]:[]),
+    ...refs.filter(o=>o.n!==r.n&&r.title.length>15&&o.title.length>15&&arsSimilarity(o.title,r.title)>=0.9).slice(0,1).map(o=>`Near-duplicate of #${o.n}`)]);const orph=X?X.miss:[];
+  const pIdx=pos=>(R.text.slice(0,pos).match(/\n/g)||[]).length;
+  const V=R.ai&&R.ai.hash===hash(R.text)?R.ai.map:null;
+  const fab=V?Object.values(V).filter(x=>x.verdict==="likely_fabricated").length:null;const unc=V?Object.values(V).filter(x=>x.verdict==="uncertain").length:null;
+  const flagged=flags.filter(f=>f.length).length;
+  // paper with marks
+  const lines=R.text.split("\n");let off=0;const marks=[...sc.marks,...(X?X.cites.map(c=>({i:c.pos,len:c.len,kind:c.bad?"citebad":"citeok",label:c.bad?"Not in the reference list":"Found in the reference list"})):[])].sort((a,b)=>a.i-b.i);
+  const paraHTML=lines.map((ln,k)=>{const start=off;off+=ln.length+1;if(!ln.trim())return"";
+    let html="",pos=0;marks.filter(m=>m.i>=start&&m.i+m.len<=start+ln.length).forEach(m=>{const a=m.i-start;if(a<pos)return;html+=esc(ln.slice(pos,a));const seg=ln.slice(a,a+m.len);
+      html+=m.kind==="invis"?`<span class="chipx" title="${esc(m.label)}">${m.label}</span>`:m.kind==="citeok"||m.kind==="citebad"?`<mark class="${m.kind}" title="${esc(m.label)}">${esc(seg)}</mark>`:m.kind==="art"?`<mark class="art" title="${esc(m.label)}">${esc(seg)}</mark>`:`<mark class="term" title="${esc(m.label)}">${esc(seg)}</mark>`;pos=a+m.len});
+    return`<p data-p="${k}">${html+esc(ln.slice(pos))}</p>`}).join("");
+  const refLine=r=>{const probe=r.text.slice(0,30);const k=lines.findIndex(l=>l.includes(probe));return k};
+  const clean=100-sc.risk;
+  let h=`<div class="dochead rise">${ring(clean)}<div style="min-width:0;display:grid;gap:8px"><div><div class="eyebrow">${esc(R.name||"Pasted text")} · ${words(R.text).length} words · ${refs.length} references</div><h2>References &amp; AI check</h2></div>
+     <div class="row">${[["References found",refs.length,""],["With local warnings",flagged,flagged?"warn":"ok"],["Likely fabricated (Claude)",fab??"—",fab?"bad":fab===0?"ok":""],["Uncertain (Claude)",unc??"—",unc?"warn":""],["Cited but not in References",orph.length,orph.length?"bad":"ok"],["In References but never cited",X&&X.cites.length?X.unused.length:"—",X&&X.cites.length&&X.unused.length?"warn":"ok"],["Hidden characters",sc.invis.reduce((a,b)=>a+b.n,0),sc.invis.length?"bad":"ok"]].map(([l,v,t])=>`<span class="pill ${t}" style="font-size:12px;padding:4px 10px">${l}: <b class="mono">${v}</b></span>`).join("")}</div>
+     <div class="muted" style="font-size:12px">Ring = clean-text score (100 = no copy-paste artifacts or AI-typical patterns found).</div></div>
+    <div class="acts row" style="justify-content:flex-end">${refs.length?`<button class="btn primary" id="refRun" ${ui.refBusy||claudeState!=="ready"?"disabled":""}>${ui.refBusy?"Checking…":V?"Check again":"Check references with Claude"}</button>`:""}
+     ${sc.risk?`<button class="btn" id="cleanBtn">Clean text</button>`:""}${(R.hist||[]).length?`<button class="btn" id="refUndo">Undo</button>`:""}<label class="btn" for="refUp">Upload file</label><input type="file" id="refUp" multiple accept=".docx,.pdf,.zip,.txt,.md" hidden><button class="btn" id="dlClean">Download cleaned .docx</button><button class="btn" id="editBtn">Edit text</button><button class="btn" id="replaceBtn">Replace</button></div></div>`;
+  if(!P.found)h+=`<div class="notice">No “References” or “Bibliography” heading was found, so the reference list could not be separated. Add that heading above the list.</div>`;
+  h+=`<div class="review"><div style="display:grid;gap:10px;min-width:0"><div class="legend"><span><span class="chipx">ZWSP</span> hidden character</span><span><i class="sw" style="background:var(--bad-soft);border:1px solid var(--bad)"></i>chat artifact</span><span><i class="sw" style="background:var(--warn)"></i>dotted: AI-typical word</span><span><i class="sw" style="background:var(--ok-soft);border:1px solid var(--ok)"></i>citation found in References</span><span><i class="sw" style="background:var(--bad-soft);border:1px solid var(--bad)"></i>citation missing from References</span></div>
+     <article class="paper rise" id="paper">${paraHTML}</article></div><aside class="side">${aiPanel(sc).replace('<div class="cols">','<div style="display:grid;gap:12px">')}</aside></div>`;
+  if(X)h+=`<section class="panel" style="display:grid;gap:12px"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">Citation cross-check · ${X.style==="numeric"?"numbered style":X.style==="author-year"?"author–year style":"no in-text citations found"}</div><h3>Do the in-text citations and the reference list match?</h3></div>
+      <span class="pill ${!orph.length&&!(X.cites.length&&X.unused.length)?"ok":"warn"}">${X.cites.length} citations in text · ${X.used} of ${refs.length} references cited</span></div>
+      ${!X.cites.length?`<p class="muted" style="margin:0">No in-text citations like (Smith, 2020), Smith et al. (2020) or [3] were found in the body.</p>`:`<div class="cols">
+        <div><b>Cited in the text but missing from References (${orph.length})</b>${orph.length?`<ul class="clean">${orph.map(o=>`<li><span class="mono" style="color:var(--bad)">${esc(o.label)}</span>${o.count>1?` <span class="muted">×${o.count}</span>`:""} <span class="muted" style="font-size:11.5px" data-pline="${pIdx(o.pos)}"></span></li>`).join("")}</ul>`:`<p class="muted" style="margin:6px 0 0">Every in-text citation has a matching reference.</p>`}</div>
+        <div><b>In References but never cited (${X.unused.length})</b>${X.unused.length?`<ul class="clean">${X.unused.map(r=>`<li><span class="mono">#${r.n}</span> ${esc(r.text.slice(0,110))}${r.text.length>110?"…":""}</li>`).join("")}</ul>`:`<p class="muted" style="margin:6px 0 0">Every reference is cited at least once.</p>`}</div></div>
+        <p class="muted" style="font-size:12px;margin:0">Matching uses the first author's surname and year (with a/b suffixes) for author–year styles, and the number for numbered styles. Check near-misses such as spelling differences by hand.</p>`}</section>`;
+  h+=arsPanelHTML(arsChecks(R.text,P.found?P.body:R.text),{lines:true,pIdx});
+  if(refs.length)h+=`<section class="panel"><div class="row" style="justify-content:space-between"><h3>Reference check</h3><span class="muted" style="font-size:12px">Claude has no internet access here, so its verdicts are judgments, not lookups. Confirm every flagged item with the links.</span></div>
+    <div class="btable" style="margin-top:8px"><table><thead><tr><th>#</th><th>Reference</th><th>Warnings</th><th>Claude</th><th>Verify</th></tr></thead><tbody>
+    ${refs.map((r,i)=>{const v=V&&V[r.n];const k=refLine(r);return`<tr class="refrow"><td class="mono">${r.n}<div class="muted" style="font-size:10.5px" data-pline="${k}"></div></td><td>${esc(r.text)}${v&&v.corrected?`<div style="margin-top:4px;font-family:var(--f-ui);font-size:12px"><b>Possible correct citation:</b> ${esc(v.corrected)}</div>`:""}</td>
+      <td>${flags[i].length?flags[i].map(f=>`<div class="pill warn" style="margin:2px 0;white-space:normal">${esc(f)}</div>`).join(""):`<span class="pill ok">None</span>`}</td>
+      <td>${v?`<span class="pill ${v.verdict==="likely_fabricated"?"bad":v.verdict==="uncertain"?"warn":"ok"}">${v.verdict==="likely_fabricated"?"Likely fabricated":v.verdict==="uncertain"?"Uncertain":"Plausible"}${v.confidence!=null?` · ${Math.round(v.confidence*100)}%`:""}</span>${(v.reasons||[]).length?`<div class="muted" style="font-size:11.5px;margin-top:4px">${v.reasons.map(esc).join("; ")}</div>`:""}`:`<span class="muted">—</span>`}</td>
+      <td class="vlinks">${verifyLinks(r).map(([u,l])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${l}</a>`).join("<br>")}</td></tr>`}).join("")}</tbody></table></div>
+    </section>`;
+  host.innerHTML=h;
+  $("editBtn").onclick=()=>{ui.editing.refs=true;renderDoc()};
+  $("replaceBtn").onclick=()=>{ui.editing.refs=true;renderDoc();setTimeout(()=>{const p=$("paste");if(p){p.value="";p.focus()}},0)};
+  if($("cleanBtn"))$("cleanBtn").onclick=()=>{R.hist=R.hist||[];R.hist.push(R.text);R.text=cleanText(R.text);save();renderDoc();toast("Hidden characters, chat markers, AI-link tags and Markdown removed")};
+  if($("refUndo"))$("refUndo").onclick=()=>{R.text=R.hist.pop();save();renderDoc();toast("Undone")};
+  $("dlClean").onclick=()=>saveFileAsync("article_cleaned.docx",()=>makeDocx(cleanText(R.text)));
+  if($("refRun"))$("refRun").onclick=()=>checkRefs();
+  $("refUp").onchange=async e=>{const {files,errs}=await expandFiles([...e.target.files]);if(errs.length)toast(errs[0]);if(files.length){R.hist=R.hist||[];R.hist.push(R.text);R.text=files.map(f=>f.text).join("\n");R.name=files.map(f=>f.name).join(", ");R.ai=null;save();renderDoc();toast("File loaded")}};
+  layoutLines();
+}
+async function checkRefs(){
+  const R=ALL.refs;const P=parseRefs(R.text);if(!P.refs.length||!sampleFn)return;ui.refBusy=true;renderDoc();
+  try{const r=await sampleFn.json(refsPrompt(P.refs,P.body),{modelTier:$("depth").value});const map={};(Array.isArray(r.refs)?r.refs:[]).forEach(x=>{if(x&&x.n!=null)map[+x.n]={verdict:["plausible","uncertain","likely_fabricated"].includes(x.verdict)?x.verdict:"uncertain",confidence:isFinite(+x.confidence)?+x.confidence:null,reasons:(Array.isArray(x.reasons)?x.reasons:[]).map(String).slice(0,4),corrected:String(x.corrected||"")}});
+    R.ai={hash:hash(R.text),map};save();toast("References checked")}
+  catch(e){if(e&&e.code==="not_granted"){claudeState="denied";renderClaudeBar()}if(!(e&&e.code==="cancelled"))toast(ERR[e&&e.code]||"Reference check failed. Try again.")}
+  finally{ui.refBusy=false;renderDoc()}
+}
+function refsReport(){const R=ALL.refs;const P=parseRefs(R.text);const sc=aiScan(R.text);const V=R.ai&&R.ai.hash===hash(R.text)?R.ai.map:{};
+  const X=P.found?crossCheck(P.body,P.refs):null;
+  return `# References & AI check\n\nSource: ${R.name||"pasted text"}\nClean-text score: ${100-sc.risk}/100\n\n## Citation cross-check\n${X?`- Cited in text but missing from References: ${X.miss.map(m=>m.label).join("; ")||"none"}\n- In References but never cited: ${X.cites.length?X.unused.map(r=>"#"+r.n).join(", ")||"none":"no in-text citations found"}`:"- No reference list found"}\n\n## Copy-paste artifacts\n${sc.invis.map(x=>`- ${x.n} × ${x.name}`).join("\n")||"- none"}\n${sc.artifacts.map(a=>`- ${a.n} × ${a.label}`).join("\n")}\n\n## References\n`+
+   P.refs.map((r,i)=>{const f=refLocalFlags(r,P.body,P.refs);const v=V[r.n];return`${r.n}. ${r.text}\n   - Warnings: ${f.join("; ")||"none"}\n   - Claude: ${v?v.verdict+(v.reasons.length?" ("+v.reasons.join("; ")+")":""):"not checked"}${v&&v.corrected?`\n   - Possible correct citation: ${v.corrected}`:""}`}).join("\n")+"\n"}
+
+/* ---------------- downloads ---------------- */
+async function saveFileAsync(name,make){try{const data=await make();await saveFile(name,data)}catch(e){toast("Couldn't build the file. Try again.")}}
+async function downloadAll(){
+  if(ALL.mode==="funding"){const rows=[["Title","Funder","Type","Countries","Deadline","Status","Award","Fields","Eligibility","Link"],...filteredGrants().map(g=>[g.title,g.sponsor,g.sponsorType,(g.countries||[g.country]).join("; "),g.deadline||"",g.status,g.amount||"",(g.fields||[]).join("; "),g.eligibility||"",g.url||""])];
+    await saveFile("funding_opportunities.csv",new Blob([rows.map(r=>r.map(v=>{v=String(v??"");return /[",\n]/.test(v)?`"${v.replace(/"/g,'""')}"`:v}).join(",")).join("\n")],{type:"text/csv"}));return}
+  const files=[];
+  try{
+    if(MODE==="refs"){if(!ALL.refs.text.trim()){toast("Add an article first");return}
+      files.push({name:"article_cleaned.docx",data:await makeDocx(cleanText(ALL.refs.text))},{name:"reference_check.md",data:refsReport()})}
+    else{for(const d of DOCS){const x=S.docs[d.key];if(x.text.trim())files.push({name:fileSafe(d.label)+"_revised.docx",data:await makeDocx(x.text)})}
+      if(!files.length){toast("Add a document first");return}
+      files.push({name:"review_report.md",data:report()});if(MODE==="grant")files.push({name:"budget.csv",data:budgetCSV(ALL.budget)})}
+    await saveFile(`${fileSafe(MODE_TABS.find(t=>t[0]===ALL.mode)[1])}_files.zip`,await zipFiles(files));
+  }catch(e){toast("Couldn't build the zip. Try again.")}
+}
+
+/* ---------------- ARS-adapted integrity checks + review panel UI ---------------- */
+function arsChecks(text,body){
+  const b=body??text;return{uncited:arsUncitedAll(b),tortured:arsTortured(text),acr:arsAcronyms(b)};
+}
+function arsPanelHTML(A,opts={}){
+  const lim=(a,n)=>a.slice(0,n);
+  return `<section style="display:grid;gap:12px"><div class="eyebrow">Integrity checks · adapted from Academic Research Skills</div><div class="cols3">
+   <div class="panel"><h3>Claims without a citation (${A.uncited.length})</h3><p class="muted" style="font-size:12px;margin:4px 0 8px">Sentences with numbers, percentages, “most/several”, or “showed/demonstrated/observed/proved/confirmed” and no citation in the same sentence (ARS rule D4-c).</p>
+     ${A.uncited.length?`<ul class="clean">${lim(A.uncited,12).map(u=>`<li><span style="font-family:var(--f-display)">${esc(u.s.length>160?u.s.slice(0,160)+"…":u.s)}</span> <span class="muted" style="font-size:11.5px">triggers: ${u.triggers.map(esc).join(", ")}</span></li>`).join("")}</ul>${A.uncited.length>12?`<p class="muted" style="font-size:12px">+${A.uncited.length-12} more</p>`:""}`:`<p class="muted" style="margin:0">Every quantitative or empirical claim has a citation nearby.</p>`}</div>
+   <div class="panel"><h3>Tortured phrases (${A.tortured.length})</h3><p class="muted" style="font-size:12px;margin:4px 0 8px">Odd synonyms of standard terms, a known sign of paraphrasing tools. A phrase-list match needs review; it is not proof of anything.</p>
+     ${A.tortured.length?`<ul class="clean">${A.tortured.map(t=>`<li><b>“${esc(t.phrase)}”</b>${t.n>1?` ×${t.n}`:""} <span class="muted">→ usually “${esc(t.expected)}”</span></li>`).join("")}</ul>`:`<p class="muted" style="margin:0">No phrases from the list found.</p>`}</div>
+   <div class="panel"><h3>Acronyms (${A.acr.length})</h3><p class="muted" style="font-size:12px;margin:4px 0 8px">Each acronym should be defined once, at first use: “randomized controlled trial (RCT)”.</p>
+     ${A.acr.length?`<ul class="clean">${lim(A.acr,14).map(a=>`<li><span class="pill ${a.rule==="undefined"?"warn":""}">${a.rule==="undefined"?"Undefined":a.rule==="defined_after_use"?"Defined late":"Defined twice"}</span> ${esc(a.msg)} ${opts.lines?`<span class="muted" style="font-size:11.5px" data-pline="${opts.pIdx(a.pos)}"></span>`:""}</li>`).join("")}</ul>`:`<p class="muted" style="margin:0">All acronyms are defined before use.</p>`}</div>
+  </div></section>`;
+}
+const DECISION_LABEL={accept:["Ready to submit","ok"],minor:["Minor revision","ok"],major:["Major revision","warn"],reject:["Not competitive yet","bad"]};
+const VERDICT_TONE={EXCEEDS:"ok",MEETS:"ok",PARTLY_MEETS:"warn",DOES_NOT_MEET:"bad",NOT_ASSESSED:""};
+function panelCtx(){const st=ALL.modes.grant;const R=st.rfa;
+  return [st.job.title,st.job.dept,(st.fields||[]).join(", ")||st.job.univ,R?JSON.stringify({review_criteria:R.review_criteria,priorities:R.priorities,page_limits:R.page_limits,award:R.award}).slice(0,2500):st.job.ad.slice(0,2500)].filter(Boolean).join(" · ")}
+async function runPanel(key,mode){
+  const d=S.docs[key];if(!sampleFn||!d.text.trim()||ui.panelBusy)return;
+  const seats=mode==="quick"?["fit"]:mode==="methods"?["fit","methods"]:["fit","methods","domain","perspective","da"];
+  ui.panelBusy={step:"Field analyst is configuring the panel",done:[]};renderDoc();
+  const ctx=panelCtx();const tier=$("depth").value;const P={mode,at:Date.now(),hash:hash(d.text),seats:{},errors:[]};
+  try{
+    try{P.field=await sampleFn.json(panelFieldPrompt(d.text,ctx),{modelTier:"quick"})}catch(e){if(e&&e.code==="not_granted")throw e;P.field=null}
+    ui.panelBusy.step=`${seats.length} reviewer${seats.length>1?"s are":" is"} reviewing independently`;renderDoc();
+    const res=await Promise.allSettled(seats.map(k=>{const seat=PANEL_SEATS.find(s=>s.key===k);const card=P.field&&P.field.cards?P.field.cards[k]:"";
+      return sampleFn.json(panelSeatPrompt(seat,card,d.text,ctx),{modelTier:tier}).then(r=>{ui.panelBusy.done.push(k);renderDoc();return r})}));
+    res.forEach((r,i)=>{if(r.status==="fulfilled")P.seats[seats[i]]=r.value;else{P.errors.push(seats[i]);if(r.reason&&r.reason.code==="not_granted")throw r.reason}});
+    if(!Object.keys(P.seats).length)throw{code:"upstream_error"};
+    if(seats.length>1){ui.panelBusy.step="Editorial synthesizer is combining the reports";renderDoc();
+      P.synth=await sampleFn.json(panelSynthPrompt(P.seats,ctx),{modelTier:tier})}
+    else{const f=P.seats.fit||{};P.synth={decision:f.recommendation,letter:f.summary||"",items:[],splits:[],da_critical:[],roadmap:(f.weaknesses||[]).map((w,i)=>({priority:i+1,item:w.issue+(w.fix?" — "+w.fix:""),from:["fit"]}))}}
+    // ARS gate: a validated or unresolved DA-CRITICAL blocks Accept
+    const crit=(P.synth.da_critical||[]).filter(c=>c.assessment!=="rejected");
+    if(P.synth.decision==="accept"&&crit.length){P.synth.decision="minor";P.gateNote="Changed from Ready to submit: a Devil's Advocate CRITICAL issue is validated or unresolved."}
+    d.panel=P;save();toast("Panel review finished");
+  }catch(e){if(e&&e.code==="not_granted"){claudeState="denied";renderClaudeBar()}if(!(e&&e.code==="cancelled"))toast(ERR[e&&e.code]||"The panel review failed. Try again.")}
+  finally{ui.panelBusy=null;renderDoc()}
+}
+function panelHTML(doc,d){
+  const P=d.panel;const busy=ui.panelBusy;const stale=P&&P.hash!==hash(d.text);
+  let h=`<section class="panel" style="display:grid;gap:12px"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">Review panel · adapted from Academic Research Skills</div><h3>Five independent reviewers and an editor</h3>
+     <p class="muted" style="margin:4px 0 0;font-size:12.5px;max-width:80ch">A field analyst configures the panel; a program officer, a methodology reviewer, a domain reviewer, a cross-disciplinary reviewer and a Devil's Advocate review separately; an editor combines them, labels agreement (CONSENSUS-4/3, SPLIT) and settles every Devil's Advocate CRITICAL issue.</p></div>
+     <span class="row"><select id="panelMode" style="width:auto" aria-label="Panel mode"><option value="full">Full panel (7 calls)</option><option value="methods">Methodology focus (3 calls)</option><option value="quick">Quick (2 calls)</option></select>
+       <button class="btn primary" id="panelRun" ${busy||claudeState!=="ready"?"disabled":""}>${busy?"Reviewing…":P?"Run panel again":"Run review panel"}</button></span></div>`;
+  if(busy)h+=`<div class="notice info"><b class="dots">${esc(busy.step)}</b>${busy.done.length?` · finished: ${busy.done.map(k=>PANEL_SEATS.find(s=>s.key===k).name).join(", ")}`:""}<div class="muted" style="font-size:12px">A full panel usually takes 1–3 minutes.</div></div>`;
+  if(!P){h+=`</section>`;return h}
+  if(stale)h+=`<div class="notice">The text changed after this panel review. Run it again to review the current version.</div>`;
+  const S2=P.synth||{};const [dl,dt]=DECISION_LABEL[S2.decision]||["—",""];
+  h+=`<div class="whyme"><div class="pill ${dt}" style="font-size:18px;border-radius:12px;padding:10px 16px;font-family:var(--f-display)">${dl}</div><div><div class="eyebrow">Panel decision${P.field&&P.field.primary?` · field: ${esc(P.field.primary)}`:""}</div><div style="margin-top:4px;font-family:var(--f-display);font-size:15.5px;line-height:1.55">${esc(S2.letter||"")}</div>${P.gateNote?`<div class="notice" style="margin-top:6px">${esc(P.gateNote)}</div>`:""}${P.errors.length?`<div class="muted" style="font-size:12px;margin-top:4px">No report from: ${P.errors.map(k=>PANEL_SEATS.find(s=>s.key===k).name).join(", ")}.</div>`:""}</div></div>`;
+  if((S2.da_critical||[]).length)h+=`<div style="display:grid;gap:8px"><b>Devil's Advocate CRITICAL issues</b>${S2.da_critical.map(c=>`<div class="notice ${c.assessment==="rejected"?"info":"bad"}"><b>${esc(c.issue)}</b> <span class="pill ${c.assessment==="validated"?"bad":c.assessment==="rejected"?"":"warn"}">${esc(c.assessment||"")}</span>${(c.corroborated_by||[]).length?` <span class="muted" style="font-size:12px">corroborated by ${c.corroborated_by.map(esc).join(", ")}</span>`:""}<div style="font-size:12.5px;margin-top:4px">${esc(c.rationale||"")}</div>${c.required_response?`<div style="font-size:12.5px;margin-top:4px"><b>You must respond:</b> ${esc(c.required_response)}</div>`:""}</div>`).join("")}</div>`;
+  if((S2.roadmap||[]).length)h+=`<div><b>Revision roadmap</b><ol class="clean" style="padding-left:20px">${S2.roadmap.sort((a,b)=>(+a.priority||9)-(+b.priority||9)).map(r=>`<li>${esc(r.item)} <span class="muted" style="font-size:11.5px">${(r.from||[]).map(esc).join(", ")}</span></li>`).join("")}</ol></div>`;
+  if((S2.items||[]).length)h+=`<div class="btable"><table><thead><tr><th>Agreement</th><th>Issue</th><th>Reviewers</th><th>Action</th></tr></thead><tbody>${S2.items.map(it=>`<tr><td><span class="pill ${it.label==="CONSENSUS-4"||it.label==="CONSENSUS-3"?"bad":it.label==="SPLIT"?"acc":it.label==="CORROBORATED"?"warn":""}">${esc(it.label||"")}</span></td><td>${esc(it.issue||"")}</td><td class="mono" style="font-size:11.5px">${(it.reviewers||[]).map(esc).join(", ")}</td><td style="font-size:12.5px">${esc(it.action||"")}</td></tr>`).join("")}</tbody></table></div>`;
+  if((S2.splits||[]).length)h+=`<div><b>Split opinions and arbitration</b><ul class="clean">${S2.splits.map(s=>`<li><b>${esc(s.issue)}</b> — ${esc(s.positions||"")} <div class="muted" style="font-size:12.5px">${s.unresolved?"Unresolved dissent: ":"Arbitration: "}${esc(s.arbitration||"")}</div></li>`).join("")}</ul></div>`;
+  const tab=ui.panelTab&&P.seats[ui.panelTab]?ui.panelTab:Object.keys(P.seats)[0];
+  h+=`<div class="seg glass" role="tablist" style="grid-template-columns:repeat(${Object.keys(P.seats).length},1fr)">${Object.keys(P.seats).map(k=>`<button role="tab" data-ptab="${k}" aria-selected="${k===tab}">${esc(PANEL_SEATS.find(s=>s.key===k).name.replace(/ \(.*\)/,""))}</button>`).join("")}</div>`;
+  h+=seatHTML(tab,P.seats[tab],P.field)+`</section>`;
+  return h;
+}
+function seatHTML(k,r,field){
+  if(!r)return"";const seat=PANEL_SEATS.find(s=>s.key===k);const card=field&&field.cards?field.cards[k]:"";
+  if(k==="da")return `<div style="display:grid;gap:10px"><div class="muted" style="font-size:12px">Adapted from ARS ${esc(seat.ars)}</div>
+    ${r.strongest_counter_argument?`<div><b>Strongest counter-argument</b><p style="font-family:var(--f-display);font-size:15px;margin:4px 0 0">${esc(r.strongest_counter_argument)}</p></div>`:""}
+    ${(r.issues||[]).map(x=>`<div class="issue" style="grid-template-columns:auto minmax(0,1fr)"><span class="pill ${x.severity==="CRITICAL"?"bad":x.severity==="MAJOR"?"warn":""}">${esc(x.severity||"")}</span><div><div class="eyebrow">${esc(x.dimension||"")}${x.field_norm_unverified?" · field norm unverified":""}</div><div><b>${esc(x.issue||"")}</b></div>${x.evidence?`<div class="q">“${esc(x.evidence)}”</div>`:""}${x.fix?`<div class="fix"><b>Fix:</b> ${esc(x.fix)}</div>`:""}</div></div>`).join("")}
+    <div class="cols">${[["Ignored alternatives",r.alternatives],["Missing stakeholders",r.missing_stakeholders]].map(([t,a])=>(a||[]).length?`<div><b>${t}</b><ul class="clean">${a.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:"").join("")}</div>
+    ${(r.observations||[]).length?`<div class="muted" style="font-size:12.5px"><b>Observations (not defects):</b> ${r.observations.map(esc).join(" · ")}</div>`:""}</div>`;
+  const [dl,dt]=DECISION_LABEL[r.recommendation]||["—",""];
+  return `<div style="display:grid;gap:10px"><div class="row" style="justify-content:space-between"><span class="muted" style="font-size:12px">Adapted from ARS ${esc(seat.ars)}${card?` · expertise: ${esc(card)}`:""}</span><span class="row" style="gap:6px"><span class="pill ${dt}">${dl}</span>${r.confidence?`<span class="pill" title="Self-reported; never used as a weight">confidence ${esc(r.confidence)}/5</span>`:""}</span></div>
+    ${r.summary?`<p style="margin:0;font-family:var(--f-display);font-size:15px">${esc(r.summary)}</p>`:""}
+    ${(r.criteria||[]).length?`<div class="btable"><table><tbody>${r.criteria.map(c=>`<tr><td><span class="pill ${VERDICT_TONE[c.verdict]||""}">${esc((c.verdict||"").replace(/_/g," ").toLowerCase())}</span></td><td><b>${esc(c.criterion||"")}</b><div class="muted" style="font-size:12.5px">${esc(c.rationale||"")}</div>${c.evidence?`<div style="font-family:var(--f-display);font-size:13.5px">“${esc(c.evidence)}”</div>`:""}</td></tr>`).join("")}</tbody></table></div>`:""}
+    <div class="cols"><div><b>Strengths</b><ul class="clean">${(r.strengths||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+      <div><b>Weaknesses</b>${(r.weaknesses||[]).map(w=>`<div class="issue" style="grid-template-columns:auto minmax(0,1fr)"><span class="pill ${w.severity==="major"?"warn":""}">${esc(w.severity||"")}</span><div><b>${esc(w.issue||"")}</b>${w.evidence?`<div class="q">“${esc(w.evidence)}”</div>`:""}${w.fix?`<div class="fix"><b>Fix:</b> ${esc(w.fix)}</div>`:""}</div></div>`).join("")}</div></div></div>`;
+}
+function wirePanel(key){
+  const pr=$("panelRun");if(pr)pr.onclick=()=>runPanel(key,$("panelMode").value);
+  document.querySelectorAll("[data-ptab]").forEach(b=>b.onclick=()=>{ui.panelTab=b.dataset.ptab;renderDoc()});
+}
+
+/* ---------------- report ---------------- */
+function report(){
+  if(ALL.mode==="refs")return refsReport();
+  let m=`# ${MODES[MODE].label} review\n\n**${MODES[MODE].ctx.heading}:** ${S.job.title||"—"}, ${S.job.dept||"—"}, ${S.job.univ||"—"}\n\n`;
+  DOCS.forEach(doc=>{const d=S.docs[doc.key];if(!d.text.trim())return;const sc=scoreOf(doc.key),ai=d.ai;
+    m+=`## ${doc.label}${sc?` — ${sc.overall}/100`:""}\n\n`;
+    if(ai){m+=`${ai.summary}\n\n`;m+=SUBSCORES.map(([k,l])=>`- ${l}: ${ai.scores[k]??"–"}/10`).join("\n")+`\n- Checklist coverage: ${sc.coverage}%\n\n`;
+      if(ai.why_me)m+=`**Why me answered:** ${ai.why_me.verdict}. ${ai.why_me.comment} Suggested: ${ai.why_me.suggestion}\n\n`;
+      m+=`### Checklist\n`+ai.checklist.map(c=>`- [${c.status==="met"?"x":c.status==="partial"?"~":" "}] ${c.id} ${doc.items.find(i=>i.id===c.id).text} — ${c.note}${c.add&&!c.applied?`\n  - Suggested addition: ${c.add.text}`:""}`).join("\n")+"\n\n";
+      if(ai.top_changes.length)m+=`### Highest-impact edits\n`+ai.top_changes.map(x=>`1. ${x}`).join("\n")+"\n\n";
+      if(ai.lacking.length)m+=`### Lacking\n`+ai.lacking.map(x=>`- ${x}`).join("\n")+"\n\n";
+      if(ai.issues.length)m+=`### Sentence issues\n`+ai.issues.map(x=>`- ${x.state==="accepted"?"(applied) ":""}${ISSUE_TYPES[x.type].label}: “${x.quote}” → “${x.replacement}” (${x.fix})`).join("\n")+"\n\n";}
+    const L=localChecks(doc,d.text,S.job);const f=[...(ai?ai.formatting:[]),...L.fmt];
+    if(f.length)m+=`### Formatting\n`+f.map(x=>`- ${x}`).join("\n")+"\n\n";
+    if(L.overused.length)m+=`Overused words: ${L.overused.map(o=>`${o.w} (${o.n})`).join(", ")}\n\n`;
+    m+=`### Current text\n\n${d.text}\n\n`;
+  });
+  return m;
+}
+function toast(t,withUndo){const el=$("toast");el.innerHTML=esc(t)+(withUndo&&(ui.hist[S.active]||[]).length?` <button class="btn small" id="toastUndo">Undo</button>`:"");el.hidden=false;
+  const u=$("toastUndo");if(u)u.onclick=()=>{el.hidden=true;undo(S.active)};
+  clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,withUndo?4500:2600)}
+
+/* ---------------- wiring ---------------- */
+[["jobTitle","title"],["jobDept","dept"],["jobUniv","univ"],["jobAd","ad"]].forEach(([id,k])=>{
+  $(id).addEventListener("input",e=>{S.job[k]=e.target.value;save();clearTimeout(window.__pt);window.__pt=setTimeout(()=>{renderPos();renderDoc()},500)})});
+$("reviewAll").onclick=()=>ALL.mode==="refs"?checkRefs():reviewAll();
+{const bd=$("bulkDrop");
+ $("bulkFile").onchange=e=>{if(e.target.files.length)importFiles(e.target.files);e.target.value=""};
+ bd.ondragover=e=>{e.preventDefault();bd.classList.add("over")};bd.ondragleave=()=>bd.classList.remove("over");
+ bd.ondrop=e=>{e.preventDefault();bd.classList.remove("over");if(e.dataTransfer.files.length)importFiles(e.dataTransfer.files)};}
+$("clearExample").onclick=()=>{resetMode();ui.editing={};ui.hist={};save();$("posPanel").open=true;renderAll()};
+$("copyReport").onclick=async()=>{const t=report();try{await navigator.clipboard.writeText(t);toast("Report copied as Markdown")}catch(e){
+  $("doc").insertAdjacentHTML("afterbegin",`<textarea id="reportBox" rows="8">${esc(t)}</textarea>`);const b=$("reportBox");b.focus();b.select();toast("Select all and copy the report text")}};
+$("posPanel").open=!S.job.ad.trim();
+$("dlAll").onclick=async()=>{const b=$("dlAll");b.disabled=true;try{await downloadAll()}finally{b.disabled=false}};
+initFunding();
+renderClaudeBar();switchMode(ALL.mode||"faculty");dlProviderUI();
+</script>
+
+</body>
+</html>

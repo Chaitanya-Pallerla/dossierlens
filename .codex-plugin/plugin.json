@@ -1,0 +1,46 @@
+{
+  "name": "dossierlens",
+  "version": "1.0.0",
+  "description": "Review faculty application packets, industry resumes (ATS) and grant proposals with detailed checklists, line-numbered fixes you can accept, a five-reviewer grant panel, RFA rule checks, a budget calculator, reference and AI-artifact checks, and a funding finder. Works with Claude Code and Codex.",
+  "author": {
+    "name": "Chaitanya Pallerla",
+    "url": "https://github.com/Chaitanya-Pallerla"
+  },
+  "homepage": "https://github.com/Chaitanya-Pallerla/dossierlens",
+  "repository": "https://github.com/Chaitanya-Pallerla/dossierlens",
+  "license": "CC-BY-NC-4.0",
+  "keywords": [
+    "academic-jobs",
+    "faculty-application",
+    "research-statement",
+    "teaching-statement",
+    "cover-letter",
+    "resume",
+    "ats",
+    "grant-writing",
+    "proposal-review",
+    "citations",
+    "ai-detection",
+    "funding"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "DossierLens",
+    "shortDescription": "Review faculty packets, resumes and grant proposals.",
+    "longDescription": "Review faculty application packets, industry resumes (ATS) and grant proposals with detailed checklists, line-numbered fixes you can accept, a five-reviewer grant panel, RFA rule checks, a budget calculator, reference and AI-artifact checks, and a funding finder. Works with Claude Code and Codex.",
+    "developerName": "Chaitanya Pallerla",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/Chaitanya-Pallerla/dossierlens",
+    "termsOfServiceURL": "https://github.com/Chaitanya-Pallerla/dossierlens/blob/main/LICENSE",
+    "defaultPrompt": [
+      "Use $faculty-packet-review on my research statement and the job ad.",
+      "Use $grant-proposal-review with the full review panel on proposal.docx and rfa.pdf.",
+      "Use $funding-finder for robotics + food science calls in the USA."
+    ]
+  }
+}

@@ -1,0 +1,701 @@
+{
+ "meta": {
+  "lastRun": "2026-10-16T19:19:27Z",
+  "runBy": "snapshot",
+  "count": 29,
+  "note": "Snapshot published with the site. Run the funding-finder skill to refresh it."
+ },
+ "grants": [
+  {
+   "amount": "Unrestricted funds (up to about $50k–$80k by area) plus AWS credits",
+   "countries": [
+    "USA",
+    "International (any)"
+   ],
+   "deadline": "2026-11-04",
+   "deadlineNote": "11:59 p.m. Pacific",
+   "eligibility": "Faculty at universities; see call",
+   "fields": [
+    "Artificial intelligence",
+    "Machine learning",
+    "Cybersecurity",
+    "AI safety",
+    "Computing & HPC"
+   ],
+   "sourceType": "official",
+   "sponsor": "Amazon",
+   "sponsorType": "Industry",
+   "status": "open",
+   "summary": "Nine areas including Agentic AI, AI for Information Security, Automated Reasoning, and Multilingual and Contextual AI Evaluation. Funded projects get an Amazon research contact.",
+   "title": "Amazon Research Awards — Fall 2026 call",
+   "updated": "2026-10-16",
+   "url": "https://www.amazon.science/research-awards/call-for-proposals",
+   "id": "amazon-ara-fall-2026"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA",
+    "International (any)"
+   ],
+   "deadline": "2026-11-04",
+   "deadlineNote": "Listed date; confirm on the program page",
+   "eligibility": "See program page",
+   "fields": [
+    "AI safety",
+    "Artificial intelligence",
+    "Machine learning"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "Anthropic",
+   "sponsorType": "Industry",
+   "status": "check",
+   "summary": "Fellowship for AI safety research.",
+   "title": "Anthropic Fellows Program for AI Safety Research",
+   "updated": "2026-10-16",
+   "url": "https://atomgrants.com/collections/ai-research-grants",
+   "id": "anthropic-fellows-ai-safety"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "Australia"
+   ],
+   "deadline": "2027-05-10",
+   "deadlineNote": "Opens Feb 1, 2027; closes 5 p.m. Canberra time",
+   "eligibility": "Researchers at eligible Australian organisations",
+   "fields": [
+    "Engineering",
+    "Physics",
+    "Biology",
+    "Social sciences",
+    "Humanities & arts",
+    "Agriculture"
+   ],
+   "sourceType": "official",
+   "sponsor": "Australian Research Council",
+   "sponsorType": "Federal",
+   "status": "forecast",
+   "summary": "Australia's main investigator-led research scheme. The EOI stage was removed for DP28.",
+   "title": "ARC Discovery Projects 2028 (DP28)",
+   "updated": "2026-10-16",
+   "url": "https://www.arc.gov.au/funding-research/scheme-calendar",
+   "id": "arc-dp28"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": null,
+   "deadlineNote": "FY2027 dates not confirmed; the 2026 cycle had an executive summary in Oct and full proposals in Jan",
+   "eligibility": "Untenured faculty at U.S. institutions",
+   "fields": [
+    "Engineering",
+    "Artificial intelligence",
+    "Electrical engineering",
+    "Materials science",
+    "Biomedical"
+   ],
+   "sourceType": "official",
+   "sponsor": "DARPA",
+   "sponsorType": "Federal",
+   "status": "forecast",
+   "summary": "Early-career faculty working on DARPA-relevant topics.",
+   "title": "DARPA Young Faculty Award (YFA, FY2027 cycle)",
+   "updated": "2026-10-16",
+   "url": "https://www.darpa.mil/news/2026/darpa-celebrates-20-years-young-faculty-awards",
+   "id": "darpa-yfa-fy27"
+  },
+  {
+   "amount": "About $875,000 over 5 years (universities, FY2026)",
+   "countries": [
+    "USA"
+   ],
+   "deadline": null,
+   "deadlineNote": "FY2027 dates not announced; FY2026 had a pre-application in March and full proposal June 2",
+   "eligibility": "Untenured early-career faculty and national lab staff",
+   "fields": [
+    "Energy",
+    "Physics",
+    "Chemistry",
+    "Materials science",
+    "Computing & HPC",
+    "Climate"
+   ],
+   "sourceType": "official",
+   "sponsor": "DOE Office of Science",
+   "sponsorType": "Federal",
+   "status": "forecast",
+   "summary": "Early-career researchers in Office of Science mission areas. Mandatory pre-application.",
+   "title": "DOE Office of Science Early Career Research Program (FY2027)",
+   "updated": "2026-10-16",
+   "url": "https://www.energy.gov/science/articles/department-energy-announces-early-career-research-program-2026",
+   "id": "doe-early-career-fy27"
+  },
+  {
+   "amount": "Up to about €2.5M",
+   "countries": [
+    "European Union"
+   ],
+   "deadline": "2027-08-26",
+   "deadlineNote": "Provisional: opens May 27, 2027",
+   "eligibility": "Host institution in an EU member or associated country",
+   "fields": [
+    "Engineering",
+    "Physics",
+    "Biology",
+    "Social sciences",
+    "Artificial intelligence",
+    "Humanities & arts"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "European Research Council",
+   "sponsorType": "International",
+   "status": "forecast",
+   "summary": "Frontier research grants for established leaders. All fields.",
+   "title": "ERC Advanced Grant 2027",
+   "updated": "2026-10-16",
+   "url": "https://casrai.org/guides/erc-starting-consolidator-grants-2027-eligibility-deadlines",
+   "id": "erc-adg-2027"
+  },
+  {
+   "amount": "Up to about €2M",
+   "countries": [
+    "European Union"
+   ],
+   "deadline": "2027-01-12",
+   "deadlineNote": "Opened Sept 24, 2026",
+   "eligibility": "Host institution in an EU member or associated country",
+   "fields": [
+    "Agriculture",
+    "Engineering",
+    "Physics",
+    "Biology",
+    "Social sciences",
+    "Artificial intelligence",
+    "Humanities & arts"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "European Research Council",
+   "sponsorType": "International",
+   "status": "open",
+   "summary": "Horizon Europe frontier research for researchers 7–12 years after PhD. All fields.",
+   "title": "ERC Consolidator Grant 2027",
+   "updated": "2026-10-16",
+   "url": "https://casrai.org/guides/erc-starting-consolidator-grants-2027-eligibility-deadlines",
+   "id": "erc-cog-2027"
+  },
+  {
+   "amount": "Varies by NOFO",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2027-02-05",
+   "deadlineNote": "5 p.m. applicant local time",
+   "eligibility": "See NOFO",
+   "fields": [
+    "Biomedical",
+    "Public health",
+    "Neuroscience",
+    "Genomics",
+    "Health informatics"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "NIH",
+   "sponsorType": "Federal",
+   "status": "open",
+   "summary": "Standard February cycle for new R01 research project grants.",
+   "title": "NIH R01 new applications",
+   "updated": "2026-10-16",
+   "url": "https://casrai.org/guides/nih-standard-due-dates-2026-2027",
+   "id": "nih-r01-new-feb27"
+  },
+  {
+   "amount": "Varies by NOFO",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2026-11-05",
+   "deadlineNote": "Standard due date; a specific NOFO can override it",
+   "eligibility": "See NOFO",
+   "fields": [
+    "Biomedical",
+    "Public health",
+    "Neuroscience",
+    "Genomics",
+    "Health informatics"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "NIH",
+   "sponsorType": "Federal",
+   "status": "open",
+   "summary": "Standard cycle for R01 renewals, resubmissions and revisions (new R01s: Feb 5, Jun 5, Oct 5).",
+   "title": "NIH R01: renewal, resubmission and revision due date",
+   "updated": "2026-10-16",
+   "url": "https://casrai.org/guides/nih-standard-due-dates-2026-2027",
+   "id": "nih-r01-resub-nov26"
+  },
+  {
+   "amount": "Varies by NOFO",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2027-02-16",
+   "eligibility": "See NOFO",
+   "fields": [
+    "Biomedical",
+    "Public health",
+    "Neuroscience",
+    "Health informatics"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "NIH",
+   "sponsorType": "Federal",
+   "status": "open",
+   "summary": "Standard February cycle for new exploratory/developmental and small grants.",
+   "title": "NIH R21/R03/R34 new applications",
+   "updated": "2026-10-16",
+   "url": "https://casrai.org/guides/nih-standard-due-dates-2026-2027",
+   "id": "nih-r21-new-feb27"
+  },
+  {
+   "amount": "Varies by NOFO",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2026-11-16",
+   "deadlineNote": "Standard due date; check the NOFO",
+   "eligibility": "See NOFO",
+   "fields": [
+    "Biomedical",
+    "Public health",
+    "Neuroscience",
+    "Health informatics"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "NIH",
+   "sponsorType": "Federal",
+   "status": "open",
+   "summary": "Exploratory/developmental grants; new applications are due Feb 16, Jun 16, Oct 16.",
+   "title": "NIH R21/R03/R34: renewal, resubmission and revision due date",
+   "updated": "2026-10-16",
+   "url": "https://casrai.org/guides/nih-standard-due-dates-2026-2027",
+   "id": "nih-r21-resub-nov26"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "Canada"
+   ],
+   "deadline": "2026-11-01",
+   "deadlineNote": "Requires the Notice of Intent submitted by Aug 4, 2026; confirm date",
+   "eligibility": "Canadian university faculty who submitted an NOI",
+   "fields": [
+    "Engineering",
+    "Physics",
+    "Chemistry",
+    "Mathematics",
+    "Biology",
+    "Computing & HPC"
+   ],
+   "sourceType": "official",
+   "sponsor": "NSERC",
+   "sponsorType": "Federal",
+   "status": "check",
+   "summary": "Canada's core research program for natural sciences and engineering.",
+   "title": "NSERC Discovery Grants (2027 competition) — full application",
+   "updated": "2026-10-16",
+   "url": "https://nserc-crsng.canada.ca/en/memo-potential-applicants-notification-intent-apply-discovery-grant-2027-competition",
+   "id": "nserc-dg-2027"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2027-02-08",
+   "eligibility": "U.S. institutions",
+   "fields": [
+    "Biology",
+    "Ecology",
+    "Genomics",
+    "Engineering"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "NSF",
+   "sponsorType": "Federal",
+   "status": "open",
+   "summary": "Biological sciences core programs and convergence research across disciplines.",
+   "title": "NSF BIO Core Programs and Growing Convergence Research",
+   "updated": "2026-10-16",
+   "url": "https://myresearchpath.duke.edu/topics/nsf-funding-programs",
+   "id": "nsf-bio-core-gcr"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": null,
+   "deadlineNote": "Listed as rolling by grant sites; confirm with NSF",
+   "eligibility": "U.S. institutions",
+   "fields": [
+    "Robotics",
+    "Artificial intelligence",
+    "Engineering",
+    "Mechanical engineering"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "NSF",
+   "sponsorType": "Federal",
+   "status": "rolling",
+   "summary": "Foundational robotics research, jointly led by NSF CISE and ENG. Talking to an FRR program officer before submitting is strongly encouraged.",
+   "title": "NSF Foundational Research in Robotics (FRR)",
+   "updated": "2026-10-16",
+   "url": "https://grantsights.com/grants/program/foundational-research-in-robotics",
+   "id": "nsf-frr"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2026-12-09",
+   "eligibility": "Two-year colleges and partners; see solicitation",
+   "fields": [
+    "Education (STEM)",
+    "Workforce development"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "NSF",
+   "sponsorType": "Federal",
+   "status": "open",
+   "summary": "Improving STEM education at two-year colleges.",
+   "title": "NSF IUSE: Innovation in Two-Year College STEM Education (ITYC)",
+   "updated": "2026-10-16",
+   "url": "https://www.federalgrants.com/Agency/National-Science-Foundation.html",
+   "id": "nsf-iuse-ityc"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": null,
+   "deadlineNote": "Accepted anytime after Sept 1, 2026",
+   "eligibility": "U.S. institutions",
+   "fields": [
+    "Chemistry",
+    "Materials science"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "NSF",
+   "sponsorType": "Federal",
+   "status": "rolling",
+   "summary": "Core chemistry research proposals accepted on a rolling basis.",
+   "title": "NSF MPS Chemistry Disciplinary Research Programs",
+   "updated": "2026-10-16",
+   "url": "https://www.federalgrants.com/Agency/National-Science-Foundation.html",
+   "id": "nsf-mps-chemistry"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2026-11-10",
+   "eligibility": "U.S. institutions; see solicitation",
+   "fields": [
+    "Engineering",
+    "Education (STEM)"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "NSF",
+   "sponsorType": "Federal",
+   "status": "open",
+   "summary": "Supports engineering faculty starting research on engineering education and formation.",
+   "title": "NSF PFE: Research Initiation in Engineering Formation (RIEF)",
+   "updated": "2026-10-16",
+   "url": "https://www.federalgrants.com/Agency/National-Science-Foundation.html",
+   "id": "nsf-pfe-rief"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2026-11-04",
+   "deadlineNote": "5 p.m. local; next window March 4, 2027",
+   "eligibility": "U.S. small businesses with an official Project Pitch invitation",
+   "fields": [
+    "Small business / SBIR",
+    "Engineering",
+    "Artificial intelligence",
+    "Manufacturing",
+    "Biomedical"
+   ],
+   "sourceType": "official",
+   "sponsor": "NSF",
+   "sponsorType": "Federal",
+   "status": "open",
+   "summary": "Deep-tech small business R&D. Phase I full proposals require an invited Project Pitch; Phase I awardees may submit Phase II by the same date.",
+   "title": "NSF SBIR/STTR Phase I, Phase II & Fast-Track (NSF 26-510)",
+   "updated": "2026-10-16",
+   "url": "https://www.nsf.gov/funding/opportunities/small-business-innovation-research-small-business-technology/nsf26-510/solicitation",
+   "id": "nsf-sbir-sttr-26-510"
+  },
+  {
+   "amount": "Compute and hardware",
+   "countries": [
+    "USA",
+    "International (any)"
+   ],
+   "deadline": null,
+   "deadlineNote": "Status unclear: listings disagree; reported quarterly windows",
+   "eligibility": "Full-time faculty at PhD-granting institutions",
+   "fields": [
+    "Artificial intelligence",
+    "Computing & HPC",
+    "Robotics",
+    "Data science"
+   ],
+   "sourceType": "aggregator",
+   "sponsor": "NVIDIA",
+   "sponsorType": "Industry",
+   "status": "rolling",
+   "summary": "GPU compute and hardware grants for faculty research.",
+   "title": "NVIDIA Academic Grant Program",
+   "updated": "2026-10-16",
+   "url": "https://www.impactopen.org/opportunities/nvidia-academic-grant-program",
+   "id": "nvidia-academic-grant"
+  },
+  {
+   "amount": "Compute allocation",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2026-12-01",
+   "eligibility": "See call",
+   "fields": [
+    "Artificial intelligence",
+    "Computing & HPC"
+   ],
+   "sourceType": "official",
+   "sponsor": "Simons Foundation",
+   "sponsorType": "Foundation",
+   "status": "open",
+   "summary": "Computational proposals using the Empire AI resource.",
+   "title": "Simons Foundation Empire AI computational call",
+   "updated": "2026-10-16",
+   "url": "https://www.simonsfoundation.org/funding-opportunities/",
+   "id": "simons-empire-ai"
+  },
+  {
+   "amount": "$600,000 over 3 years",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2027-01-13",
+   "eligibility": "See program page",
+   "fields": [
+    "Neuroscience",
+    "Biomedical"
+   ],
+   "sourceType": "official",
+   "sponsor": "Simons Foundation",
+   "sponsorType": "Foundation",
+   "status": "open",
+   "summary": "Faculty grant supporting the transition from postdoc to faculty in autism and neuroscience research.",
+   "title": "Simons Autism & Neuroscience: Fellows-to-Faculty (2027)",
+   "updated": "2026-10-16",
+   "url": "https://www.simonsfoundation.org/grant/fellows-to-faculty-award/",
+   "id": "simons-fellows-to-faculty"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2026-11-12",
+   "eligibility": "HBCU faculty and institutions",
+   "fields": [
+    "Mathematics",
+    "Physics",
+    "Biology",
+    "Computing & HPC"
+   ],
+   "sourceType": "official",
+   "sponsor": "Simons Foundation",
+   "sponsorType": "Foundation",
+   "status": "open",
+   "summary": "Support for faculty and research centers at Historically Black Colleges and Universities.",
+   "title": "Simons HBCU Faculty Fellowship and HBCU Centers of Excellence (2027)",
+   "updated": "2026-10-16",
+   "url": "https://www.simonsfoundation.org/funding-opportunities/",
+   "id": "simons-hbcu"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2026-12-03",
+   "eligibility": "Postdocs; see call",
+   "fields": [
+    "Plant science",
+    "Biology",
+    "Agriculture"
+   ],
+   "sourceType": "official",
+   "sponsor": "Simons Foundation",
+   "sponsorType": "Foundation",
+   "status": "open",
+   "summary": "Postdoctoral fellowships in plant biology.",
+   "title": "Simons Plant Biology Postdoctoral Fellowships (2027)",
+   "updated": "2026-10-16",
+   "url": "https://www.simonsfoundation.org/",
+   "id": "simons-plant-postdoc"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2027-01-21",
+   "deadlineNote": "Shown on the Simons homepage; confirm",
+   "eligibility": "See program page",
+   "fields": [
+    "Computing & HPC",
+    "Data science",
+    "Physics",
+    "Mathematics"
+   ],
+   "sourceType": "official",
+   "sponsor": "Simons Foundation",
+   "sponsorType": "Foundation",
+   "status": "check",
+   "summary": "Faculty awards for research on scientific software.",
+   "title": "Simons Scientific Software Research Faculty Award (2027–2028)",
+   "updated": "2026-10-16",
+   "url": "https://www.simonsfoundation.org/grant/scientific-software-research-faculty-award/",
+   "id": "simons-sci-software"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2027-01-27",
+   "deadlineNote": "Noon Eastern; opened Oct 1, 2026",
+   "eligibility": "See program page",
+   "fields": [
+    "Mathematics"
+   ],
+   "sourceType": "official",
+   "sponsor": "Simons Foundation",
+   "sponsorType": "Foundation",
+   "status": "open",
+   "summary": "Travel and collaboration support for mathematicians.",
+   "title": "Simons Foundation Travel Support for Mathematicians",
+   "updated": "2026-10-16",
+   "url": "https://www.simonsfoundation.org/grant/travel-support-for-mathematicians/",
+   "id": "simons-travel-math"
+  },
+  {
+   "amount": "Commodity board co-funding",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2026-11-19",
+   "deadlineNote": "5 p.m. EST",
+   "eligibility": "Commodity boards only",
+   "fields": [
+    "Agriculture",
+    "Food science"
+   ],
+   "sourceType": "official",
+   "sponsor": "USDA NIFA",
+   "sponsorType": "Federal",
+   "status": "open",
+   "summary": "Commodity boards propose topics to co-fund in the FY2027 Foundational and Applied Science NOFO.",
+   "title": "AFRI FY2027 commodity board topic solicitation",
+   "updated": "2026-10-16",
+   "url": "https://www.nifa.usda.gov/commodity-board-topic-solicitation-notification",
+   "id": "usda-afri-commodity-topics-fy27"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2026-12-31",
+   "deadlineNote": "Opportunity closing date; check RFA for program deadlines",
+   "eligibility": "See RFA",
+   "fields": [
+    "Agriculture",
+    "Education (STEM)",
+    "Workforce development"
+   ],
+   "sourceType": "official",
+   "sponsor": "USDA NIFA",
+   "sponsorType": "Federal",
+   "status": "open",
+   "summary": "Fellowships, training and workforce programs in food and agricultural sciences.",
+   "title": "USDA NIFA AFRI Education and Workforce Development (FY2026)",
+   "updated": "2026-10-16",
+   "url": "https://www.nifa.usda.gov/grants/funding-opportunities/agriculture-food-research-initiative-education-workforce-development",
+   "id": "usda-afri-ewd-fy26"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": "2026-12-31",
+   "deadlineNote": "Opportunity closes Dec 31; individual program-area deadlines are listed in the RFA",
+   "eligibility": "See RFA by program area",
+   "fields": [
+    "Agriculture",
+    "Food science",
+    "Plant science",
+    "Animal science",
+    "Biological & agricultural engineering"
+   ],
+   "sourceType": "official",
+   "sponsor": "USDA NIFA",
+   "sponsorType": "Federal",
+   "status": "open",
+   "summary": "USDA-NIFA-AFRI-011134. Research, extension and education grants across agricultural and food sciences. FY2027 deadlines will appear in the FY2027 NOFOs.",
+   "title": "USDA NIFA AFRI Foundational and Applied Science (FY2026)",
+   "updated": "2026-10-16",
+   "url": "https://www.nifa.usda.gov/grants/funding-opportunities/agriculture-food-research-initiative-foundational-applied-science",
+   "id": "usda-afri-fas-fy26"
+  },
+  {
+   "amount": "",
+   "countries": [
+    "USA"
+   ],
+   "deadline": null,
+   "deadlineNote": "FY2027 NOFOs not posted as of Oct 2026",
+   "eligibility": "",
+   "fields": [
+    "Agriculture",
+    "Food science",
+    "Plant science",
+    "Animal science",
+    "Biological & agricultural engineering"
+   ],
+   "sourceType": "official",
+   "sponsor": "USDA NIFA",
+   "sponsorType": "Federal",
+   "status": "forecast",
+   "summary": "FY2027 AFRI deadlines will be announced in the FY2027 NOFOs.",
+   "title": "USDA NIFA AFRI FY2027 programs (not yet posted)",
+   "updated": "2026-10-16",
+   "url": "https://www.nifa.usda.gov/grants/programs/agriculture-food-research-initiative/afri-deadlines",
+   "id": "usda-afri-fy27-forecast"
+  }
+ ]
+}
