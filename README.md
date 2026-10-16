@@ -67,7 +67,7 @@ Every review uses the same format:
 
 <table>
 <tr>
-<td width="50%"><img src="docs/assets/screenshots/01-faculty-review.png" alt="Faculty packet review with color-coded checklist highlights and line numbers"><br><sub><b>Faculty packet.</b> Each sentence is tinted by the checklist item it covers (C1, C4…), with line numbers, scores and the <i>why me?</i> verdict.</sub></td>
+<td width="50%"><img src="docs/assets/screenshots/01-faculty-review.png" alt="Faculty packet review with color-coded checklist highlights and line numbers"><br><sub><b>Faculty packet.</b> Each sentence is tinted by the checklist item it covers (T1, T2…), with line numbers, scores and fixes beside the text.</sub></td>
 <td width="50%"><img src="docs/assets/screenshots/03-grant-panel.png" alt="Grant review panel with consensus labels and Devil's Advocate critical issue"><br><sub><b>Grant review panel.</b> Five independent reviewers, consensus labels, a Devil's Advocate CRITICAL issue and the revision roadmap.</sub></td>
 </tr>
 <tr>
@@ -296,9 +296,9 @@ python scripts/dossierlens.py docx revised.md -o revised.docx --title "Research 
 
 ## Integrity checks (adapted from Academic Research Skills)
 **Claims without a citation:** 1
-- sentence 1: "Crop scouting costs growers 32% of margins." (32%)
+- sentence 1: "Electrolyte losses reached 32% of recovered material in 2021." (32%)
 **Acronym issues:** 1
-- line 1: CNN is used 1x but never defined.
+- line 1: MS is used 1x but never defined.
 **Tortured phrases:** 1
 - "profound learning" → usually "deep learning"
 
@@ -341,32 +341,33 @@ The checklists themselves are in [`references/checklists.md`](references/checkli
 ## Example session
 
 ```text
-You  › /dossierlens:review-packet research.docx cover.docx job_ad.pdf
+You  › /dossierlens:review-packet teaching_statement.docx job_ad.pdf
 
-Claude › Cover Letter — 65/100
-         Clarity 7 · Evidence 8 · Fit 6 · Feasibility 3 · Innovation 6 · Writing 7 · Coverage 71%
+Claude › Teaching Statement — 66/100
+         Clarity 7 · Evidence 8 · Fit 6 · Feasibility 5 · Innovation 6 · Writing 7 · Coverage 67%
 
-         ✅ C1 met — line 2: correct title, department and university
-         ◐ C2 partly met — line 4: the reason is generic ("passion", "cutting-edge")
-         ❌ C7 missing — Extension is 20% of the job and never mentioned
+         ✅ T2 met — lines 3-4: courses taught and number of students
+         ◐ T5 partly met — line 8: "cutting-edge technology" is vague; name the tools
+         ❌ T11 missing — no plan for improving teaching from feedback
 
-         Does it say why you? Partly. Try adding: "I bring something few precision-
-         agriculture researchers do: sensing systems cheap enough for producers to own."
-
-         [1] Line 13 · Overpromising
-             − "will revolutionize precision agriculture … within five years"
-             + "will make crop scouting affordable, starting with [number] cooperator farms"
-         [2] Line 26 · Grammar
-             − "consideration and I look forward"
-             + "consideration, and I look forward"
-         [3] After line 23 · Missing item C7 (new paragraph)
-             + "Extension is central to how I work. During my Ph.D., I [presented at grower field days] …"
+         [1] Line 7 · Unclear or vague
+             − "if they are given the right support and the right environment to learn and grow in"
+             + "when they get timely feedback and regular practice, which is why I build both into every course"
+         [2] Line 8 · Overpromising
+             − "to transform how chemistry is taught across the entire department"
+             + "in the courses I teach, starting with [course name]"
+         [3] Line 12 · Grammar
+             − "would compliment"
+             + "would complement"
+         [4] After line 15 · Missing item T11
+             + "I collect anonymous mid-semester feedback and compare learning outcomes each term …"
 
          Reply with the numbers to apply (e.g. apply 1 3), apply all, or apply all grammar.
 
 You  › apply all
 
-Claude › Wrote cover_revised.md and cover_revised.docx. Fill in 2 [brackets] (highlighted yellow in Word).
+Claude › Wrote teaching_statement_revised.md and teaching_statement_revised.docx.
+         Fill in 2 [brackets] (highlighted yellow in Word).
 ```
 
 ---

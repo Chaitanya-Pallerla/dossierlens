@@ -46,9 +46,9 @@ Number every suggestion. Each has a line, a type, the exact current words, a rep
 
 ```
 [3] Line 14 · Overpromising
-    − "will revolutionize precision agriculture across the state"
-    + "will cut scouting costs on [number] cooperator farms within three years"
-    Why: one lab cannot transform a whole state's practice in five years.
+    − "will transform how chemistry is taught across the entire department"
+    + "will improve learning in the courses I teach, starting with [course name]"
+    Why: a new faculty member cannot change a whole department's teaching.
 ```
 
 Types: Grammar · Unclear or vague · Overpromising · Job-ad echo (repeats the ad's buzzwords instead of showing evidence) · Repetition · Tone · Formatting · **Missing item** (a new sentence or paragraph that covers a ❌/◐ checklist item, with where to insert it).

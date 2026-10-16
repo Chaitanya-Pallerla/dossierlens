@@ -7,7 +7,7 @@ const MODES={
  faculty:{label:"Faculty packet",short:"Faculty",subs:SUBS_ACADEMIC,
   role:"a senior faculty member on a tenure-track search committee at a land-grant university",
   ctx:{heading:"Position and job ad",f1:"Position title",f2:"Department",f3:"University",ad:"Job advertisement text",adHint:"Paste the full ad: duties, qualifications, appointment split.",
-    p1:"Assistant Professor, Precision Agriculture",p2:"Biological and Agricultural Engineering",p3:"University name"},
+    p1:"Assistant Professor of Chemistry",p2:"Department of Chemistry",p3:"University name"},
   subsDesc:"clarity; evidence (specific, quantified accomplishments); fit (alignment with this position and the job ad); feasibility (10 = realistic, achievable plans; low = overpromising); innovation (novelty and ambition of the proposed goals compared with the field); writing (grammar, concision, style)",
   docs:[
  {key:"research",label:"Research Statement",pre:"R",range:[1200,2500],pages:"2–4 pages",items:[
@@ -125,7 +125,7 @@ const MODES={
  grant:{label:"Grant proposal",short:"Grant",subs:SUBS_GRANT,
   role:"an experienced grant review panelist and program officer who has scored many proposals for agencies such as NSF, NIH and USDA NIFA",
   ctx:{heading:"Funding opportunity",f1:"Program / solicitation",f2:"Agency",f3:"Field of study",ad:"Solicitation or RFA text",adHint:"Paste the program description, priorities and review criteria.",
-    p1:"AFRI Foundational: Engineering for Agricultural Systems",p2:"USDA NIFA",p3:"Agricultural engineering"},
+    p1:"NSF CAREER",p2:"NSF",p3:"Chemistry"},
   subsDesc:"clarity (a reviewer outside the subfield can follow it); evidence (preliminary data, rigor, reproducibility); fit (alignment with the solicitation's priorities and review criteria); feasibility (scope realistic for budget, team and duration; low = overpromising); innovation (conceptual, methodological or technical novelty versus the state of the art); writing (grammar, concision)",
   docs:[
  {key:"proposal",label:"Project Narrative",pre:"G",range:[3000,9000],pages:"per solicitation",items:[

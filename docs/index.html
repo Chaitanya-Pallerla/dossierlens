@@ -481,56 +481,9 @@ function getModel(d){
 }
 const validAi=d=>d.ai&&d.ai.hash===hash(d.text)?d.ai:null;
 
-/* ---------------- example ---------------- */
-const EX_JOB={title:"Assistant Professor in Precision Agriculture",dept:"Department of Biological and Agricultural Engineering",univ:"Northfield State University",
-ad:`Northfield State University, the state's land-grant institution, invites applications for a tenure-track Assistant Professor in Precision Agriculture (60% research, 20% teaching, 20% Extension) in the Department of Biological and Agricultural Engineering.
-
-The successful candidate will develop an extramurally funded research program in crop sensing, data-driven decision tools, and agricultural automation; teach undergraduate and graduate courses in instrumentation, sensors and controls, and data analytics; and deliver Extension programs that help row-crop producers adopt precision technologies.
-
-Candidates should demonstrate interdisciplinary, stakeholder-engaged approaches and a commitment to excellence in teaching, research, and Extension. The department houses the Northfield Digital Agriculture Center and 3,000 acres of research farms.
-
-Required: Ph.D. in agricultural engineering or a related field; evidence of research productivity. Preferred: experience with edge computing, imaging sensors, and Extension or outreach programming.`};
-const EX_COVER=`Dear Members of the Search Committee,
-I am writing to apply for the Assistant Professor position in Precision Agriculture in the Department of Biological and Agricultural Engineering at Northfield State University. I am excited about this position because it aligns with my passion for innovative, cutting-edge research and my commitment to excellence in teaching, research, and Extension.
-I completed my Ph.D. in Biosystems Engineering in 2025, where I developed low-cost hyperspectral imaging systems for detecting nitrogen stress in corn. This work produced four first-author journal articles and an open dataset of 12,000 annotated leaf spectra that has been downloaded by more than 30 research groups. As a postdoctoral researcher, I built an edge-computing pipeline that runs crop disease detection on a $90 single-board computer at 15 frames per second.
-My research program will revolutionize precision agriculture by eliminating the need for manual crop scouting across the entire state within five years. I will leverage data-driven, interdisciplinary, stakeholder-engaged approaches to address the needs of diverse stakeholders, which aligns with the department's strategic priorities. I am particularly eager to collaborate with the Northfield Digital Agriculture Center and use the university's research farms to validate sensors under field conditions.
-I have taught Instrumentation for Agricultural Systems as a co-instructor for two semesters and mentored six undergraduate researchers, two of whom presented at the ASABE annual meeting. I am also qualified to teach courses in machine vision, sensors and controls, and data analytics for agriculture.
-Thank you for your time and consideration and I look forward to hearing from you.`;
-const EX_AI={
- summary:"Strong, concrete evidence of research productivity and a clear teaching record, but the letter leans on job-ad language in its middle paragraph, overpromises in its research vision, and never mentions Extension even though it is 20% of the appointment.",
- scores:{clarity:7,evidence:8,fit:6,feasibility:3,innovation:6,writing:7},
- innovation_comment:"Low-cost hyperspectral and edge-computing sensing is a credible niche; stating what is new compared with commercial scouting tools would make the innovation explicit.",
- feasibility_comment:"\"Eliminating the need for manual crop scouting across the entire state within five years\" is not achievable by one lab and will read as naive to a committee. Promise a measurable first step instead.",
- checklist:[
-  {id:"C1",status:"met",sentences:[1],note:"Title, department and university are named correctly.",add:null},
-  {id:"C2",status:"partial",sentences:[2],note:"The reason given is generic ('passion', 'cutting-edge'). Name what about Northfield specifically draws you.",add:null},
-  {id:"C3",status:"met",sentences:[3,5],note:"PhD and postdoc training are summarized clearly.",add:null},
-  {id:"C4",status:"met",sentences:[3,4,5],note:"Concrete outcomes: 4 papers, a 12,000-spectrum dataset used by 30+ groups, a $90 edge pipeline.",add:null},
-  {id:"C5",status:"partial",sentences:[6,7],note:"Future direction is stated as hype plus job-ad keywords; give one concrete research thrust.",add:null},
-  {id:"C6",status:"met",sentences:[9,10],note:"Teaching experience and courses listed without repeating the teaching statement.",add:null},
-  {id:"C7",status:"missing",sentences:[],note:"Extension is 20% of this position and 'preferred' in the ad, but no Extension or outreach experience is mentioned.",
-    add:{after:10,new_paragraph:true,text:"Extension is central to how I work. During my Ph.D., I [presented imaging results at grower field days / co-led a workshop for crop consultants], and at Northfield I would run on-farm demonstrations of low-cost sensors with county agents so producers can test them before buying."}},
-  {id:"C8",status:"partial",sentences:[7],note:"Overlap is asserted with the ad's own words rather than shown by mapping your evidence to its requirements (edge computing, imaging sensors).",
-    add:{after:5,new_paragraph:false,text:"This work maps directly onto the advertised emphasis on imaging sensors and edge computing."}},
-  {id:"C9",status:"met",sentences:[8],note:"Names the Digital Agriculture Center and research farms.",add:null},
-  {id:"C10",status:"partial",sentences:[4,5],note:"The low-cost angle is your differentiator but it is never stated as such.",
-    add:{after:5,new_paragraph:false,text:"Together, these results show what I bring that few candidates do: sensing systems cheap enough for producers to own, proven on edge hardware and already used by other researchers."}},
-  {id:"C11",status:"partial",sentences:[],note:"Concise overall; sentences 2 and 7 are filler that weaken the narrative.",add:null},
-  {id:"C12",status:"met",sentences:[11],note:"Closes with appreciation.",add:null}],
- issues:[
-  {s:2,type:"unclear",quote:"my passion for innovative, cutting-edge research",replacement:"the department's investment in the Northfield Digital Agriculture Center, which matches my work on low-cost field sensing,",fix:"'Passion' and 'cutting-edge' are generic. Name a specific draw at this institution."},
-  {s:6,type:"overpromise",quote:"will revolutionize precision agriculture by eliminating the need for manual crop scouting across the entire state within five years",replacement:"will make crop scouting affordable for small and mid-sized farms, starting with field validation of a sub-$200 imaging node on [number] cooperator farms within three years",fix:"Statewide elimination of scouting is not achievable by one lab. Promise a measurable first step."},
-  {s:7,type:"jd_echo",quote:"leverage data-driven, interdisciplinary, stakeholder-engaged approaches to address the needs of diverse stakeholders",replacement:"work with [agronomists, crop consultants, and county Extension agents] to test which sensor outputs producers actually act on",fix:"These are the ad's own buzzwords. Replace them with who you will work with and what you will do."},
-  {s:11,type:"grammar",quote:"consideration and I look forward",replacement:"consideration, and I look forward",fix:"Use a comma before 'and' when it joins two independent clauses."}],
- lacking:["Any Extension or outreach experience (20% of the appointment, and preferred in the ad).","A direct 'why me' sentence stating what you offer that other applicants do not.","Funding direction (agency or program) for the research vision."],
- top_changes:["Rewrite the research vision sentence as one realistic, measurable 3–5 year goal.","Replace the job-ad keyword sentence with evidence that maps to 'edge computing' and 'imaging sensors' in the ad.","Add a short paragraph on Extension: field days, grower talks, or demonstrations you have done or will do.","State your differentiator outright: affordable, deployable sensing that producers can adopt."],
- formatting:["Add date, your contact block, and the search committee address at the top; use institutional letterhead if your current employer allows.","Keep to one page; there is room for an Extension paragraph."],
- strengths:["Quantified outcomes (papers, dataset downloads, cost and frame rate).","Specific institutional resources named."],
- why_me:{verdict:"partly",comment:"The evidence for 'why me' is present (low-cost hyperspectral sensing, a widely used dataset, edge deployment), but the letter never says it. The reader has to infer it.",suggestion:"I bring something few precision-agriculture researchers do: sensing systems cheap enough for producers to own, proven on edge hardware."}
-};
-function loadExample(){resetMode();S.job={...EX_JOB};S.docs.cover={text:EX_COVER,name:"Example cover letter",ai:{...JSON.parse(JSON.stringify(EX_AI)),hash:hash(EX_COVER),t:1},model:null};S.active="cover";S.example=true}
+/* ---------------- no built-in example: the page opens empty ---------------- */
 const hasAny=()=>DOCS.some(d=>(S.docs[d.key].text||"").trim())||S.job.ad.trim();
-if(MODE==="faculty"&&(!hasAny()||S.example))loadExample();
+if(S.example){resetMode();save()}
 
 /* ---------------- Claude ---------------- */
 let sampleFn=null,dlFn=null,claudeState="loading";

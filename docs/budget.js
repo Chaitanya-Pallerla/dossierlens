@@ -11,8 +11,8 @@ function budgetDefaults(){return{
    {role:"Undergraduate researchers",cat:"undergrad",n:2,base:15,unit:"hour",qty:400,from:1,to:3},
    {role:"Postdoctoral researcher",cat:"postdoc",n:0,base:62000,unit:"year",qty:1,from:1,to:2}],
   equipment:[
-   {name:"Hyperspectral camera",link:"",cost:28000,qty:1,year:1},
-   {name:"Edge computing boards",link:"",cost:250,qty:6,year:1}],
+   {name:"Gas chromatograph",link:"",cost:45000,qty:1,year:1},
+   {name:"Sensor kits",link:"",cost:250,qty:6,year:1}],
   other:{supplies:6000,travelTrips:2,travelCost:2200,publication:3000,participant:0,computing:1500,other:0},
   subawards:[],
   aims:[{name:"Aim 1",pct:40},{name:"Aim 2",pct:35},{name:"Aim 3",pct:25}]}}

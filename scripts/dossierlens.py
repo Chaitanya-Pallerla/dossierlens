@@ -418,7 +418,7 @@ BUDGET_EXAMPLE = {"years": 3, "escalation_pct": 3, "fa_rate_pct": 50, "cap": 750
                   "personnel": [{"role": "PI summer salary", "type": "faculty", "count": 1, "rate": 12200, "unit": "month", "amount": 1, "from_year": 1, "to_year": 3},
                                 {"role": "Graduate research assistant", "type": "grad", "count": 2, "rate": 30000, "unit": "year", "amount": 1, "from_year": 1, "to_year": 3, "tuition": 15000},
                                 {"role": "Undergraduate researchers", "type": "undergrad", "count": 2, "rate": 15, "unit": "hour", "amount": 400, "from_year": 1, "to_year": 3}],
-                  "equipment": [{"item": "Hyperspectral camera", "link": "", "unit_cost": 28000, "qty": 1, "year": 1}, {"item": "Edge computing boards", "link": "", "unit_cost": 250, "qty": 6, "year": 1}],
+                  "equipment": [{"item": "Gas chromatograph", "link": "", "unit_cost": 45000, "qty": 1, "year": 1}, {"item": "Sensor kits", "link": "", "unit_cost": 250, "qty": 6, "year": 1}],
                   "other_per_year": {"supplies": 6000, "trips": 2, "cost_per_trip": 2200, "publication": 3000, "participant_support": 0, "computing": 1500, "other": 0},
                   "subawards": [], "aims": [{"name": "Aim 1", "pct": 40}, {"name": "Aim 2", "pct": 35}, {"name": "Aim 3", "pct": 25}]}
 
