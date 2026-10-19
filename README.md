@@ -267,7 +267,7 @@ The visual version gives you:
 | **B2. Your ChatGPT, Claude.ai or Gemini login, no key** | In either A or B, open a document and click **Review in ChatGPT / Claude.ai**: the prompt is copied and the chat opens; paste, send, then paste the reply back and click **Load review** | Your existing chat account |
 | **C. In claude.ai, with your Claude subscription** | In Claude Code, run `/dossierlens:open-app` and ask Claude to publish it as an artifact | Uses your Claude account; no key |
 
-Clicking a checklist item or a suggestion jumps to that sentence in the text. **Download .docx** puts every accepted change in Word as a tracked change (Review → Accept / Reject); **Word, changes accepted** gives a clean copy.
+Clicking a checklist item or a suggestion jumps to that sentence and dims the rest. **🔎 Find ideas** on any suggestion gives options that fit the position, university and place (for example named industry partners, centers or programs) with a sentence you can drop in, plus web searches to verify them. An **Undo / Redo** bar follows you down the document (Ctrl+Z / Ctrl+Y). **Download .docx** puts every accepted change in Word as a tracked change (Review → Accept / Reject); **Word, changes accepted** gives a clean copy.
 
 Without a key you still get uploads (`.docx`, `.pdf`, `.zip`), packet splitting, instant writing checks, the citation cross-check, AI-trace cleaning, the integrity checks and the budget calculator.
 

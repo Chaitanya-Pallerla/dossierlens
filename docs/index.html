@@ -133,6 +133,10 @@ textarea{resize:vertical;line-height:1.5}
 .s.added{box-shadow:inset 0 -2px 0 var(--ok);background:var(--ok-soft)}
 .s.flash{animation:flash 2.4s ease-out}
 .sug[data-sug]:hover{border-color:var(--accent)}
+.docbar{position:sticky;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;width:max-content;max-width:100%;margin:0 auto;padding:8px 12px;border-radius:14px}
+.ideas{display:grid;gap:8px;padding:10px;border-radius:12px;background:var(--sunken);border:1px dashed var(--line)}
+.idea{display:grid;gap:4px;padding:8px 10px;border-radius:10px;background:var(--glass-strong)}
+.ideas a.chip{text-decoration:none;color:var(--accent)}
 .sug.hot{box-shadow:0 0 0 2px var(--accent),0 14px 30px -14px var(--shadow)}
 @keyframes flash{0%{background:var(--ok);box-shadow:0 0 0 6px var(--ok-soft)}100%{}}
 .paper.focus .s:not(.on){opacity:.25;background:none}
@@ -602,9 +606,9 @@ async function reviewAll(){
 }
 
 /* ---------------- applying suggestions ---------------- */
-function snapshot(key){const d=S.docs[key];if(d.base==null)d.base=d.text;(ui.hist[key]=ui.hist[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai}));if(ui.hist[key].length>40)ui.hist[key].shift()}
+function snapshot(key){const d=S.docs[key];if(d.base==null)d.base=d.text;ui.redo=ui.redo||{};ui.redo[key]=[];(ui.hist[key]=ui.hist[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai}));if(ui.hist[key].length>40)ui.hist[key].shift()}
 function commit(key){const d=S.docs[key];d.text=rebuild(d.model);d.modelHash=hash(d.text);d.ai.hash=d.modelHash;save()}
-function undo(key){const h=ui.hist[key];if(!h||!h.length)return;const v=JSON.parse(h.pop());const d=S.docs[key];d.text=v.text;d.model=v.model;d.ai=v.ai;d.modelHash=hash(d.text);save();renderAll();toast("Undone")}
+function undo(key){const h=ui.hist[key];if(!h||!h.length)return;const d=S.docs[key];ui.redo=ui.redo||{};(ui.redo[key]=ui.redo[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai}));const v=JSON.parse(h.pop());d.text=v.text;d.model=v.model;d.ai=v.ai;d.modelHash=hash(d.text);save();renderAll();toast("Undone")}
 function applyIssue(key,k){
   const d=S.docs[key],ai=validAi(d);if(!ai)return false;const x=ai.issues[k];if(!x||x.state)return false;
   const m=getModel(d);const s=m.find(z=>z.i===x.s);
@@ -847,6 +851,7 @@ function ring(v){const c=2*Math.PI*44,col=v==null?"var(--line)":`var(--${tone(v)
   return `<div class="ring"><svg viewBox="0 0 104 104"><circle cx="52" cy="52" r="44" fill="none" stroke="var(--sunken)" stroke-width="9"/><circle class="fg" cx="52" cy="52" r="44" fill="none" stroke="${col}" stroke-width="9" stroke-linecap="round" style="--c:${c}" stroke-dasharray="${c}" stroke-dashoffset="${v==null?c:c*(1-v/100)}"/></svg><div class="v"><div><span id="ringNum" data-v="${v??""}">${v==null?"—":v}</span><small>of 100</small></div></div></div>`}
 
 function renderDoc(){
+  const _sy=window.scrollY,_sd=document.querySelector("#doc .side"),_ss=_sd?_sd.scrollTop:0;
   if(ALL.mode==="refs"){renderRefs();return}
   if(ALL.mode==="funding"){renderFunding();return}
   if(String(S.active).startsWith("tool:")){renderTool(S.active.slice(5));return}
@@ -922,7 +927,7 @@ function renderDoc(){
       <span><i class="sw" style="background:var(--bad)"></i>wavy: grammar</span><span><i class="sw" style="background:var(--warn)"></i>dotted: unclear</span>
       <span><i class="sw" style="background:var(--violet)"></i>double: overpromising</span><span><i class="sw" style="background:var(--sky)"></i>dashed: job-ad echo</span>
       <span><i class="sw" style="background:var(--ok)"></i>green: text you added</span><span><i class="sw" style="background:var(--warn-soft);border:1px solid var(--warn)"></i>[brackets]: fill in your detail</span></div>
-    <article class="${paperCls}" id="paper" style="--k:2">${paras}</article></div>
+    <article class="${paperCls}" id="paper" style="--k:2">${paras}</article>${ai?`<div class="docbar glass" role="toolbar" aria-label="Undo and redo"><button class="btn small" id="barUndo" ${(ui.hist[key]||[]).length?"":"disabled"} title="Undo (Ctrl+Z)">↶ Undo</button><button class="btn small" id="barRedo" ${((ui.redo||{})[key]||[]).length?"":"disabled"} title="Redo (Ctrl+Y)">↷ Redo</button><span class="muted" style="font-size:12px">${appliedN} change${appliedN===1?"":"s"} applied</span><button class="btn small" id="barDl">Download .docx</button></div>`:""}</div>
     <aside class="side">${ui.sel!=null?selCard(sents,ai,sItems,sIss,itemById):""}
       <div class="seg glass" role="tablist"><button role="tab" data-side="sug" aria-selected="${ui.side==="sug"}">Suggestions${ai?`<span class="n">${sugs.length}</span>`:""}</button><button role="tab" data-side="cl" aria-selected="${ui.side==="cl"}">Checklist${ai?`<span class="n">${ai.checklist.filter(c=>c.status==="met").length}/${ai.checklist.length}</span>`:""}</button></div>
       ${ui.side==="sug"?sugPanel(ai,sugs,itemById,hist,appliedN,doc):clPanel(doc,ai,cById)}
@@ -964,6 +969,7 @@ function renderDoc(){
   h+=aiPanel(L.ai);
   if(MODE==="grant")h+=arsPanelHTML(arsChecks(d.text));
   host.innerHTML=h;
+  window.scrollTo(0,_sy);{const ns=host.querySelector(".side");if(ns)ns.scrollTop=_ss}
   wireDoc(doc,d,key);wireModePanels(doc,d,key);layoutLines();
   if(anim)countUp();
   if(flashId!=null){const el=host.querySelector(`#paper [data-s="${flashId}"]`);if(el)el.scrollIntoView({behavior:"smooth",block:"center"})}
@@ -985,7 +991,7 @@ function sugPanel(ai,sugs,itemById,hist,appliedN,doc){
         <div class="h"><span class="pill" style="color:${T.color};background:var(--sunken)">${T.label}</span><button class="loc" data-goto="${x.s}">Sentence ${x.s<1000?x.s:"new"}</button></div>
         <div class="diff">${x.quote?`<del>${esc(x.quote)}</del>`:""}${x.replacement?`<ins>${phMark(esc(x.replacement))}</ins>`:""}</div>
         <div class="why">${esc(x.fix)}</div>
-        <div class="acts">${x.replacement?`<button class="accept" data-acc="i:${s.k}"><span class="tick">✓</span>Accept</button>`:`<button class="accept" data-done="i:${s.k}"><span class="tick">✓</span>Mark fixed</button>`}<button class="dismiss" data-dis="i:${s.k}">Dismiss</button></div></div>`}
+        <div class="acts">${x.replacement?`<button class="accept" data-acc="i:${s.k}"><span class="tick">✓</span>Accept</button>`:`<button class="accept" data-done="i:${s.k}"><span class="tick">✓</span>Mark fixed</button>`}<button class="dismiss" data-dis="i:${s.k}">Dismiss</button><button class="dismiss" data-ideas="i:${s.k}" title="Options that fit this position and place">🔎 Find ideas</button></div>${ideasHTML("i:"+s.k)}</div>`}
     const c=s.c,it=itemById[c.id];
     return `<div class="sug glass rise" style="--k:${n+3}" data-sug="a:${c.id}">
       <div class="h"><span class="pill ${c.status==="missing"?"bad":"warn"}"><span class="badge" style="--h:${it.h};margin:0">${c.id}</span>${c.status==="missing"?"Missing":"Partly met"}</span><button class="loc" data-goto="${c.add.after}">${c.add.after===-1?"At the start":`After sentence ${c.add.after<1000?c.add.after:"new"}`}${c.add.new_paragraph?" · new paragraph":""}</button></div>
@@ -993,7 +999,7 @@ function sugPanel(ai,sugs,itemById,hist,appliedN,doc){
       <div class="why">${esc(c.note)}</div>
       <label class="muted" for="add-${c.id}" style="font-size:11px;font-weight:600">Draft to add (edit before accepting; fill in any [brackets])</label>
       <textarea id="add-${c.id}" rows="${Math.min(7,Math.ceil(c.add.text.length/48)+1)}" data-addtxt="${c.id}">${esc(c.add.text)}</textarea>
-      <div class="acts"><button class="accept" data-acc="a:${c.id}"><span class="tick">✓</span>Add to statement</button><button class="dismiss" data-dis="a:${c.id}">Dismiss</button></div></div>`;
+      <div class="acts"><button class="accept" data-acc="a:${c.id}"><span class="tick">✓</span>Add to statement</button><button class="dismiss" data-dis="a:${c.id}">Dismiss</button><button class="dismiss" data-ideas="a:${c.id}" title="Options that fit this position and place">🔎 Find ideas</button></div>${ideasHTML("a:"+c.id)}</div>`;
   }).join("");
   if(appliedN){
     const acc=ai.issues.filter(x=>x.state==="accepted"),add=ai.checklist.filter(c=>c.applied);
@@ -1065,6 +1071,10 @@ function wireDoc(doc,d,key){
     const c=d.ai&&d.ai.checklist?d.ai.checklist.find(z=>z.id===id):null;if(!c)return;
     if(c.sentences.length)jumpTo(c.sentences[0]);else if(c.add){ui.focus=null;renderDoc();jumpTo(c.add.after);toast(`${id} is missing. The suggested text would go here.`)}else toast(`${id} is not covered anywhere in the text yet.`)});
   q("#paper .s").forEach(el=>{const f=()=>{ui.sel=Number(el.dataset.s);renderDoc()};el.onclick=f;el.onkeydown=e=>{if(e.key==="Enter")f()}});
+  if($("barUndo"))$("barUndo").onclick=()=>undo(key);if($("barRedo"))$("barRedo").onclick=()=>redo(key);if($("barDl"))$("barDl").onclick=()=>$("dlDoc").click();
+  q("[data-ideas]").forEach(b=>b.onclick=e=>{e.stopPropagation();findIdeas(key,b.dataset.ideas)});
+  q("[data-useidea]").forEach(b=>b.onclick=e=>{e.stopPropagation();const [id,n]=b.dataset.useidea.split("|");useIdea(key,id,+n)});
+  q("[data-addtxt]").forEach(ta=>ta.oninput=()=>{const ai=validAi(d);const c=ai&&ai.checklist.find(z=>z.id===ta.dataset.addtxt);if(c&&c.add)c.add.text=ta.value});
   if($("closeSel"))$("closeSel").onclick=()=>{ui.sel=null;renderDoc()};
   const goCard=(card,target)=>{const [kind,ref]=card.dataset.sug.split(":");const k=kind==="i"?+ref:ref;const t=+target;
     if(ui.hot&&ui.hot.kind===kind&&ui.hot.k===k&&ui.focusSent!=null){ui.hot=null;ui.focusSent=null;ui.sel=null;renderDoc();return}
@@ -1435,6 +1445,59 @@ function wireExt(key){
     const doc=DOCMAP[key],d=S.docs[key];const sents=getModel(d);
     d.ai={...clean(v,doc,sents),hash:hash(d.text),t:Date.now(),via:"pasted"};d.base=null;d.err=null;ui.hist[key]=[];ui.ext[key]=false;save();renderAll();toast("Review loaded")};
 }
+
+
+/* ---------------- "Find ideas" for a suggestion: position-aware options + web searches ---------------- */
+function ideaContext(key,id){
+  const d=S.docs[key],ai=validAi(d),doc=DOCMAP[key];const [kind,ref]=id.split(":");
+  if(kind==="i"){const x=ai.issues[+ref];const s=getModel(d).find(z=>z.i===x.s);return{topic:`${ISSUE_TYPES[x.type].label}: ${x.fix}`,current:x.replacement||x.quote,sentence:s?s.t:"",short:x.fix}}
+  const c=ai.checklist.find(z=>z.id===ref),it=doc.items.find(z=>z.id===ref);
+  return{topic:`${it.text}. ${c.note||""}`,current:(c.add&&c.add.text)||"",sentence:"",short:it.text};
+}
+function ideaSearches(short){const J=S.job;const where=[J.univ,J.dept].filter(Boolean).join(" ");
+  const topic=short.replace(/^(Explain|Describe|Identify|Show|Connect|Highlight|Include|Discuss|Define|Address|Suggest|Use|Communicate|Summarize|Clearly state|Clearly explain|Present|Demonstrate|Provide)\s+(how\s+)?(I\s+will\s+|my\s+)?/i,"").split(/[,.;(]/)[0].slice(0,80);
+  return [`${where} ${topic}`.trim(),`${J.univ||""} ${topic} partners`.trim()].filter(q=>q.length>4)}
+function ideasPrompt(key,ctx){const J=S.job;const M=MODES[MODE];
+  return `You help an applicant improve a ${DOCMAP[key].label}. Act as ${M.role}.
+Target: ${J.title||"(position not given)"} · ${J.dept||""} · ${J.univ||""}
+Job ad / call excerpt: """${(J.ad||"").slice(0,2500)}"""
+The reviewer's suggestion to address: ${ctx.topic}
+${ctx.sentence?`The sentence it refers to: "${ctx.sentence}"`:""}
+Current draft wording: "${ctx.current}"
+
+Give 3 to 6 specific, concrete options that fit THIS institution and its location (state/region, local industries, nearby companies, agencies, centers, programs, facilities, community partners, funders, courses), e.g. named industry partners for an industry-partnership suggestion. Only name organizations you are confident exist and are relevant; set confidence "low" when unsure. Never invent the applicant's own experience; use [brackets] for facts they must supply.
+Return ONLY JSON: {"place":"city/region you assumed","ideas":[{"name":"","type":"company|center|program|agency|facility|community|course|other","why":"one sentence on why it fits this position and place","sentence":"a sentence the applicant could use, in their voice","confidence":"high|medium|low"}],"searches":["2-4 short web search queries to verify or find more"]}`}
+async function findIdeas(key,id){
+  ui.ideas=ui.ideas||{};const ctx=ideaContext(key,id);const fallback=ideaSearches(ctx.short);
+  if(ui.ideas[id]&&!ui.ideas[id].busy&&ui.ideas[id].open){ui.ideas[id].open=false;renderDoc();return}
+  if(!sampleFn){ui.ideas[id]={open:true,items:[],searches:fallback,note:"Connect an AI (or use the claude.ai version) to get named options for this position. These web searches work now."};renderDoc();return}
+  ui.ideas[id]={open:true,busy:true,items:[],searches:fallback};renderDoc();
+  try{const r=await sampleFn.json(ideasPrompt(key,ctx),{modelTier:$("depth").value});
+    ui.ideas[id]={open:true,place:String(r.place||""),items:(Array.isArray(r.ideas)?r.ideas:[]).slice(0,6).map(x=>({name:String(x.name||""),type:String(x.type||""),why:String(x.why||""),sentence:String(x.sentence||""),confidence:["high","medium","low"].includes(x.confidence)?x.confidence:"medium"})),
+      searches:[...(Array.isArray(r.searches)?r.searches:[]).map(String).slice(0,4),...fallback].filter((q,i,a)=>q&&a.indexOf(q)===i).slice(0,5)}}
+  catch(e){if(e&&e.code==="not_granted"){claudeState="denied";renderClaudeBar()}ui.ideas[id]={open:true,items:[],searches:fallback,note:(ERR[e&&e.code]||"Couldn't get ideas right now.")+" The web searches below still work."}}
+  renderDoc();
+}
+function ideasHTML(id){const I=ui.ideas&&ui.ideas[id];if(!I||!I.open)return"";
+  const J=S.job;const g=q=>`https://www.google.com/search?q=${encodeURIComponent(q)}`;
+  return `<div class="ideas"><div class="eyebrow">Ideas for ${esc(J.univ||J.dept||"this position")}${I.place?` · ${esc(I.place)}`:""}</div>
+    ${I.busy?`<div class="muted dots" style="font-size:12.5px">Looking for options that fit this position and place</div>`:""}
+    ${I.note?`<div class="muted" style="font-size:12.5px">${esc(I.note)}</div>`:""}
+    ${I.items.map((x,n)=>`<div class="idea"><div class="row" style="gap:6px;justify-content:space-between"><b>${esc(x.name)}</b><span class="row" style="gap:4px"><span class="pill">${esc(x.type)}</span><span class="pill ${x.confidence==="high"?"ok":x.confidence==="low"?"warn":""}" title="How sure the AI is that this fits and exists">${x.confidence}</span></span></div>
+      <div class="why">${esc(x.why)}</div>${x.sentence?`<div class="q" style="font-size:13.5px">${phMark(esc(x.sentence))}</div><button class="btn small" data-useidea="${id}|${n}">Use this</button>`:""}</div>`).join("")}
+    ${I.searches&&I.searches.length?`<div class="chips" style="margin-top:4px">${I.searches.map(q=>`<a class="chip" href="${g(q)}" target="_blank" rel="noopener">🔎 ${esc(q)}</a>`).join("")}</div>`:""}
+    ${I.items.length?`<div class="muted" style="font-size:11.5px">Check every name before you use it; AI suggestions can be out of date or wrong.</div>`:""}</div>`}
+function useIdea(key,id,n){const I=ui.ideas[id];const x=I&&I.items[n];if(!x)return;const d=S.docs[key],ai=validAi(d);const [kind,ref]=id.split(":");
+  if(kind==="a"){const c=ai.checklist.find(z=>z.id===ref);const ta=document.querySelector(`[data-addtxt="${ref}"]`);const cur=(ta?ta.value:c.add.text).trim();
+    c.add.text=cur?cur+" "+x.sentence:x.sentence;save();toast("Added to the draft. Edit it, then Add to statement")}
+  else{ai.issues[+ref].replacement=x.sentence;save();toast("Replacement updated. Accept it when ready")}
+  renderDoc()}
+function redo(key){const r=ui.redo&&ui.redo[key];if(!r||!r.length)return;const d=S.docs[key];
+  (ui.hist[key]=ui.hist[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai}));
+  const v=JSON.parse(r.pop());d.text=v.text;d.model=v.model;d.ai=v.ai;d.modelHash=hash(d.text);save();renderAll();toast("Redone")}
+document.addEventListener("keydown",e=>{if(!(e.ctrlKey||e.metaKey)||ALL.mode==="refs"||ALL.mode==="funding")return;if(e.target.closest&&e.target.closest("input,textarea,select,[contenteditable]"))return;
+  const k=e.key.toLowerCase();const key=S&&S.active;if(!key||!DOCMAP[key])return;
+  if(k==="z"&&!e.shiftKey){e.preventDefault();undo(key)}else if(k==="y"||(k==="z"&&e.shiftKey)){e.preventDefault();redo(key)}});
 
 /* ---------------- report ---------------- */
 function report(){
