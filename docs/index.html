@@ -147,6 +147,7 @@ textarea{resize:vertical;line-height:1.5}
 .edbar select{width:auto;padding:5px 8px;font-size:12.5px}
 .edb{min-width:32px;height:30px;border:1px solid var(--line);border-radius:8px;background:var(--glass-strong);font-size:14px}.edb:hover{border-color:var(--accent)}
 .docbar{position:sticky;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;width:max-content;max-width:100%;margin:0 auto;padding:8px 12px;border-radius:14px}
+.ideas textarea{font-size:13px;background:var(--glass-strong)}
 .ideas{display:grid;gap:8px;padding:10px;border-radius:12px;background:var(--sunken);border:1px dashed var(--line)}
 .idea{display:grid;gap:4px;padding:8px 10px;border-radius:10px;background:var(--glass-strong)}
 .ideas a.chip{text-decoration:none;color:var(--accent)}
@@ -1001,7 +1002,7 @@ function sugPanel(ai,sugs,itemById,hist,appliedN,doc){
         <div class="h"><span class="pill" style="color:${T.color};background:var(--sunken)">${T.label}</span><button class="loc" data-goto="${x.s}">Sentence ${x.s<1000?x.s:"new"}</button></div>
         <div class="diff">${x.quote?`<del>${esc(x.quote)}</del>`:""}${x.replacement?`<ins>${phMark(esc(x.replacement))}</ins>`:""}</div>
         <div class="why">${esc(x.fix)}</div>
-        <div class="acts">${x.replacement?`<button class="accept" data-acc="i:${s.k}"><span class="tick">✓</span>Accept</button>`:`<button class="accept" data-done="i:${s.k}"><span class="tick">✓</span>Mark fixed</button>`}<button class="dismiss" data-dis="i:${s.k}">Dismiss</button><button class="dismiss" data-ideas="i:${s.k}" title="Options that fit this position and place">🔎 Find ideas</button></div>${ideasHTML("i:"+s.k)}</div>`}
+        <div class="acts">${x.replacement?`<button class="accept" data-acc="i:${s.k}"><span class="tick">✓</span>Accept</button>`:`<button class="accept" data-done="i:${s.k}"><span class="tick">✓</span>Mark fixed</button>`}<button class="dismiss" data-dis="i:${s.k}">Dismiss</button><button class="dismiss" data-ideas="i:${s.k}" title="Ask your own question about this suggestion">🔎 Ask / search</button></div>${ideasHTML("i:"+s.k)}</div>`}
     const c=s.c,it=itemById[c.id];
     return `<div class="sug glass rise" style="--k:${n+3}" data-sug="a:${c.id}">
       <div class="h"><span class="pill ${c.status==="missing"?"bad":"warn"}"><span class="badge" style="--h:${it.h};margin:0">${c.id}</span>${c.status==="missing"?"Missing":"Partly met"}</span><button class="loc" data-goto="${c.add.after}">${c.add.after===-1?"At the start":`After sentence ${c.add.after<1000?c.add.after:"new"}`}${c.add.new_paragraph?" · new paragraph":""}</button></div>
@@ -1009,7 +1010,7 @@ function sugPanel(ai,sugs,itemById,hist,appliedN,doc){
       <div class="why">${esc(c.note)}</div>
       <label class="muted" for="add-${c.id}" style="font-size:11px;font-weight:600">Draft to add (edit before accepting; fill in any [brackets])</label>
       <textarea id="add-${c.id}" rows="${Math.min(7,Math.ceil(c.add.text.length/48)+1)}" data-addtxt="${c.id}">${esc(c.add.text)}</textarea>
-      <div class="acts"><button class="accept" data-acc="a:${c.id}"><span class="tick">✓</span>Add to statement</button><button class="dismiss" data-dis="a:${c.id}">Dismiss</button><button class="dismiss" data-ideas="a:${c.id}" title="Options that fit this position and place">🔎 Find ideas</button></div>${ideasHTML("a:"+c.id)}</div>`;
+      <div class="acts"><button class="accept" data-acc="a:${c.id}"><span class="tick">✓</span>Add to statement</button><button class="dismiss" data-dis="a:${c.id}">Dismiss</button><button class="dismiss" data-ideas="a:${c.id}" title="Ask your own question about this suggestion">🔎 Ask / search</button></div>${ideasHTML("a:"+c.id)}</div>`;
   }).join("");
   if(appliedN){
     const acc=ai.issues.filter(x=>x.state==="accepted"),add=ai.checklist.filter(c=>c.applied);
@@ -1083,6 +1084,10 @@ function wireDoc(doc,d,key){
   q("#paper .s").forEach(el=>{const f=()=>{ui.sel=Number(el.dataset.s);renderDoc()};el.onclick=f;el.onkeydown=e=>{if(e.key==="Enter")f()}});
   if($("barUndo"))$("barUndo").onclick=()=>undo(key);if($("barRedo"))$("barRedo").onclick=()=>redo(key);if($("barDl"))$("barDl").onclick=()=>$("dlDoc").click();
   q("[data-ideas]").forEach(b=>b.onclick=e=>{e.stopPropagation();findIdeas(key,b.dataset.ideas)});
+  q("[data-ideaq]").forEach(t=>{t.oninput=()=>{const I=ui.ideas[t.dataset.ideaq];if(I)I.q=t.value};t.onclick=e=>e.stopPropagation();t.onkeydown=e=>{if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)){e.preventDefault();askIdeas(key,t.dataset.ideaq)}}});
+  q("[data-ideaask]").forEach(b=>b.onclick=e=>{e.stopPropagation();askIdeas(key,b.dataset.ideaask)});
+  q("[data-ideaweb]").forEach(b=>b.onclick=e=>{e.stopPropagation();const I=ui.ideas[b.dataset.ideaweb];const q=(I&&I.q||"").trim();if(!q){toast("Type what to search for first");return}
+    const a=document.createElement("a");a.href="https://www.google.com/search?q="+encodeURIComponent(q);a.target="_blank";a.rel="noopener";document.body.appendChild(a);a.click();a.remove()});
   q("[data-useidea]").forEach(b=>b.onclick=e=>{e.stopPropagation();const [id,n]=b.dataset.useidea.split("|");useIdea(key,id,+n)});
   q("[data-addtxt]").forEach(ta=>ta.oninput=()=>{const ai=validAi(d);const c=ai&&ai.checklist.find(z=>z.id===ta.dataset.addtxt);if(c&&c.add)c.add.text=ta.value});
   if($("closeSel"))$("closeSel").onclick=()=>{ui.sel=null;renderDoc()};
@@ -1467,7 +1472,7 @@ function ideaContext(key,id){
 function ideaSearches(short){const J=S.job;const where=[J.univ,J.dept].filter(Boolean).join(" ");
   const topic=short.replace(/^(Explain|Describe|Identify|Show|Connect|Highlight|Include|Discuss|Define|Address|Suggest|Use|Communicate|Summarize|Clearly state|Clearly explain|Present|Demonstrate|Provide)\s+(how\s+)?(I\s+will\s+|my\s+)?/i,"").split(/[,.;(]/)[0].slice(0,80);
   return [`${where} ${topic}`.trim(),`${J.univ||""} ${topic} partners`.trim()].filter(q=>q.length>4)}
-function ideasPrompt(key,ctx){const J=S.job;const M=MODES[MODE];
+function ideasPrompt(key,ctx,question){const J=S.job;const M=MODES[MODE];
   return `You help an applicant improve a ${DOCMAP[key].label}. Act as ${M.role}.
 Target: ${J.title||"(position not given)"} · ${J.dept||""} · ${J.univ||""}
 Job ad / call excerpt: """${(J.ad||"").slice(0,2500)}"""
@@ -1475,28 +1480,31 @@ The reviewer's suggestion to address: ${ctx.topic}
 ${ctx.sentence?`The sentence it refers to: "${ctx.sentence}"`:""}
 Current draft wording: "${ctx.current}"
 
-Give 3 to 6 specific, concrete options that fit THIS institution and its location (state/region, local industries, nearby companies, agencies, centers, programs, facilities, community partners, funders, courses), e.g. named industry partners for an industry-partnership suggestion. Only name organizations you are confident exist and are relevant; set confidence "low" when unsure. Never invent the applicant's own experience; use [brackets] for facts they must supply.
-Return ONLY JSON: {"place":"city/region you assumed","ideas":[{"name":"","type":"company|center|program|agency|facility|community|course|other","why":"one sentence on why it fits this position and place","sentence":"a sentence the applicant could use, in their voice","confidence":"high|medium|low"}],"searches":["2-4 short web search queries to verify or find more"]}`}
-async function findIdeas(key,id){
-  ui.ideas=ui.ideas||{};const ctx=ideaContext(key,id);const fallback=ideaSearches(ctx.short);
-  if(ui.ideas[id]&&!ui.ideas[id].busy&&ui.ideas[id].open){ui.ideas[id].open=false;renderDoc();return}
-  if(!sampleFn){ui.ideas[id]={open:true,items:[],searches:fallback,note:"Connect an AI (or use the claude.ai version) to get named options for this position. These web searches work now."};renderDoc();return}
-  ui.ideas[id]={open:true,busy:true,items:[],searches:fallback};renderDoc();
-  try{const r=await sampleFn.json(ideasPrompt(key,ctx),{modelTier:$("depth").value});
-    ui.ideas[id]={open:true,place:String(r.place||""),items:(Array.isArray(r.ideas)?r.ideas:[]).slice(0,6).map(x=>({name:String(x.name||""),type:String(x.type||""),why:String(x.why||""),sentence:String(x.sentence||""),confidence:["high","medium","low"].includes(x.confidence)?x.confidence:"medium"})),
-      searches:[...(Array.isArray(r.searches)?r.searches:[]).map(String).slice(0,4),...fallback].filter((q,i,a)=>q&&a.indexOf(q)===i).slice(0,5)}}
-  catch(e){if(e&&e.code==="not_granted"){claudeState="denied";renderClaudeBar()}ui.ideas[id]={open:true,items:[],searches:fallback,note:(ERR[e&&e.code]||"Couldn't get ideas right now.")+" The web searches below still work."}}
-  renderDoc();
-}
-function ideasHTML(id){const I=ui.ideas&&ui.ideas[id];if(!I||!I.open)return"";
-  const J=S.job;const g=q=>`https://www.google.com/search?q=${encodeURIComponent(q)}`;
-  return `<div class="ideas"><div class="eyebrow">Ideas for ${esc(J.univ||J.dept||"this position")}${I.place?` · ${esc(I.place)}`:""}</div>
-    ${I.busy?`<div class="muted dots" style="font-size:12.5px">Looking for options that fit this position and place</div>`:""}
+THE APPLICANT'S QUESTION (answer this, for this position and place): ${question}
+
+Answer the question directly in "answer" (2-4 sentences). Where it helps, also give up to 6 specific, concrete options that fit THIS institution and its location (state/region, local industries, nearby companies, agencies, centers, programs, facilities, community partners, funders, courses), e.g. named industry partners for an industry-partnership suggestion. Only name organizations you are confident exist and are relevant; set confidence "low" when unsure. Never invent the applicant's own experience; use [brackets] for facts they must supply.
+Return ONLY JSON: {"place":"city/region you assumed","answer":"direct answer to the question","ideas":[{"name":"","type":"company|center|program|agency|facility|community|course|other","why":"one sentence on why it fits this position and place","sentence":"a sentence the applicant could use, in their voice","confidence":"high|medium|low"}],"searches":["2-4 short web search queries to verify or find more"]}`}
+function findIdeas(key,id){ui.ideas=ui.ideas||{};const I=ui.ideas[id];
+  if(I&&I.open&&!I.busy){I.open=false;renderDoc();return}
+  ui.ideas[id]={...(I||{items:[],q:""}),open:true};renderDoc();setTimeout(()=>{const t=document.querySelector(`[data-ideaq="${id}"]`);if(t)t.focus()},0)}
+async function askIdeas(key,id){const I=ui.ideas[id];const q=(I.q||"").trim();
+  if(!q){toast("Type your question first");return}
+  if(!sampleFn){I.note="Connect an AI (or use the claude.ai version, or Review in ChatGPT) to get answers here. Search the web works now.";renderDoc();return}
+  I.busy=true;I.note="";renderDoc();const ctx=ideaContext(key,id);
+  try{const r=await sampleFn.json(ideasPrompt(key,ctx,q),{modelTier:$("depth").value,cache:false});
+    Object.assign(I,{busy:false,place:String(r.place||""),answer:String(r.answer||""),items:(Array.isArray(r.ideas)?r.ideas:[]).slice(0,6).map(x=>({name:String(x.name||""),type:String(x.type||""),why:String(x.why||""),sentence:String(x.sentence||""),confidence:["high","medium","low"].includes(x.confidence)?x.confidence:"medium"}))})}
+  catch(e){if(e&&e.code==="not_granted"){claudeState="denied";renderClaudeBar()}Object.assign(I,{busy:false,note:(ERR[e&&e.code]||"Couldn't get an answer right now.")+" Search the web still works."})}
+  renderDoc()}
+function ideasHTML(id){const I=ui.ideas&&ui.ideas[id];if(!I||!I.open)return"";const J=S.job;
+  return `<div class="ideas"><div class="eyebrow">Ask about this suggestion${J.univ?` · ${esc(J.univ)}`:""}${I.place?` · ${esc(I.place)}`:""}</div>
+    <textarea data-ideaq="${id}" rows="2" placeholder="Type your question, e.g. Which companies near this university could I partner with?">${esc(I.q||"")}</textarea>
+    <div class="row" style="gap:6px"><button class="btn small primary" data-ideaask="${id}" ${I.busy?"disabled":""}>${I.busy?"Asking…":"Ask"}</button><button class="btn small" data-ideaweb="${id}">🔎 Search the web</button>
+      <span class="muted" style="font-size:11.5px">Answers use the position, university and this suggestion.</span></div>
     ${I.note?`<div class="muted" style="font-size:12.5px">${esc(I.note)}</div>`:""}
-    ${I.items.map((x,n)=>`<div class="idea"><div class="row" style="gap:6px;justify-content:space-between"><b>${esc(x.name)}</b><span class="row" style="gap:4px"><span class="pill">${esc(x.type)}</span><span class="pill ${x.confidence==="high"?"ok":x.confidence==="low"?"warn":""}" title="How sure the AI is that this fits and exists">${x.confidence}</span></span></div>
+    ${I.answer?`<div style="font-size:13.5px">${phMark(esc(I.answer))}</div>`:""}
+    ${(I.items||[]).map((x,n)=>`<div class="idea"><div class="row" style="gap:6px;justify-content:space-between"><b>${esc(x.name)}</b><span class="row" style="gap:4px"><span class="pill">${esc(x.type)}</span><span class="pill ${x.confidence==="high"?"ok":x.confidence==="low"?"warn":""}" title="How sure the AI is that this fits and exists">${x.confidence}</span></span></div>
       <div class="why">${esc(x.why)}</div>${x.sentence?`<div class="q" style="font-size:13.5px">${phMark(esc(x.sentence))}</div><button class="btn small" data-useidea="${id}|${n}">Use this</button>`:""}</div>`).join("")}
-    ${I.searches&&I.searches.length?`<div class="chips" style="margin-top:4px">${I.searches.map(q=>`<a class="chip" href="${g(q)}" target="_blank" rel="noopener">🔎 ${esc(q)}</a>`).join("")}</div>`:""}
-    ${I.items.length?`<div class="muted" style="font-size:11.5px">Check every name before you use it; AI suggestions can be out of date or wrong.</div>`:""}</div>`}
+    ${(I.items||[]).length||I.answer?`<div class="muted" style="font-size:11.5px">Check every name before you use it; AI answers can be out of date or wrong.</div>`:""}</div>`}
 function useIdea(key,id,n){const I=ui.ideas[id];const x=I&&I.items[n];if(!x)return;const d=S.docs[key],ai=validAi(d);const [kind,ref]=id.split(":");
   if(kind==="a"){const c=ai.checklist.find(z=>z.id===ref);const ta=document.querySelector(`[data-addtxt="${ref}"]`);const cur=(ta?ta.value:c.add.text).trim();
     c.add.text=cur?cur+" "+x.sentence:x.sentence;save();toast("Added to the draft. Edit it, then Add to statement")}
