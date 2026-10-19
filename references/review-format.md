@@ -71,6 +71,6 @@ End by asking: **"Reply with the numbers to apply (for example `apply 1 3 5`), `
 
 When the user replies:
 1. Never overwrite the original. Write `<name>_revised.md` (or `.txt`) next to it with the accepted replacements and insertions.
-2. Make the Word version: `python "<plugin root>/scripts/dossierlens.py" docx <name>_revised.md -o <name>_revised.docx` ([brackets] are highlighted yellow for the user to fill in).
+2. Make the Word version with **tracked changes** against the original, so the user can accept or reject each change in Word: `python "<plugin root>/scripts/dossierlens.py" docx <name>_revised.md -o <name>_revised.docx --original <original file>`. Leave out `--original` for a clean copy. ([brackets] are highlighted yellow for the user to fill in).
 3. List what was applied and any [brackets] left to fill.
 4. Offer to review the revised version again.

@@ -94,15 +94,18 @@ Return ONLY JSON: {"figures":[{"n":1,"kind":"conceptual|data|photo|workflow|tabl
 
 /* ---------- export ---------- */
 const xmlEsc=s=>String(s).replace(/[<>&"]/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c]));
-async function makeDocx(text,title){
+async function makeDocx(text,title,base){
   await loadScript("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js");
   const run=(t,{b,hl}={})=>`<w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:cs="Calibri"/>${b?"<w:b/>":""}${hl?'<w:highlight w:val="yellow"/>':""}<w:sz w:val="22"/></w:rPr><w:t xml:space="preserve">${xmlEsc(t)}</w:t></w:r>`;
   const para=line=>{const head=line.length<90&&!/[.,;:]$/.test(line)&&(headType(line)||/^[A-Z][A-Za-z ,&/-]{2,60}$/.test(line)&&line.split(" ").length<=8);
     const parts=line.split(/(\[[^\]\n]{1,80}\])/);
     return `<w:p><w:pPr><w:spacing w:after="${head?80:160}" w:line="276" w:lineRule="auto"/></w:pPr>${parts.map((p,i)=>p?run(p,{b:head,hl:i%2===1}):"").join("")}</w:p>`};
-  const body=(title?`<w:p><w:pPr><w:spacing w:after="200"/></w:pPr>${run(title,{b:true})}</w:p>`:"")+text.split(/\n+/).map(l=>l.trim()).filter(Boolean).map(para).join("");
+  const tracked=base&&base.trim()&&base!==text&&typeof dlTrackedBody==="function";
+  const body=(title?`<w:p><w:pPr><w:spacing w:after="200"/></w:pPr>${run(title,{b:true})}</w:p>`:"")+(tracked?dlTrackedBody(base,text,run).xml:text.split(/\n+/).map(l=>l.trim()).filter(Boolean).map(para).join(""));
   const zip=new JSZip();
-  zip.file("[Content_Types].xml",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+  zip.file("[Content_Types].xml",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>');
+  zip.file("word/_rels/document.xml.rels",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>');
+  zip.file("word/settings.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">${tracked?"<w:trackRevisions/>":""}</w:settings>`);
   zip.file("_rels/.rels",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
   zip.file("word/document.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`);
   return zip.generateAsync({type:"blob",mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});

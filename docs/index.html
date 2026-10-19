@@ -131,7 +131,8 @@ textarea{resize:vertical;line-height:1.5}
 .s.hl{background:hsla(var(--h),78%,55%,var(--hl-a))}
 .s.sel{box-shadow:0 0 0 2px var(--accent)}
 .s.added{box-shadow:inset 0 -2px 0 var(--ok);background:var(--ok-soft)}
-.s.flash{animation:flash 1.8s ease-out}
+.s.flash{animation:flash 2.4s ease-out}
+.sug[data-sug]:hover{border-color:var(--accent)}
 @keyframes flash{0%{background:var(--ok);box-shadow:0 0 0 6px var(--ok-soft)}100%{}}
 .paper.focus .s:not(.on){opacity:.25;background:none}
 .badge{display:inline-block;font-family:var(--f-mono);font-size:10px;font-weight:600;line-height:1;padding:2px 4px;border-radius:4px;margin-right:3px;vertical-align:2px;color:#fff;background:hsl(var(--h),62%,var(--badge-l))}
@@ -357,6 +358,7 @@ mark.citebad{background:var(--bad-soft);color:var(--bad);border-radius:3px;font-
 <script src="aiscan.js"></script>
 <script src="budget.js"></script>
 <script src="compare.js"></script>
+<script src="tracked.js"></script>
 <script src="funding.js"></script>
 <script src="ars.js"></script>
 <script>
@@ -587,7 +589,7 @@ async function review(key,fresh){
       onText:({text})=>{ui.stream[key]=text;const el=document.getElementById("stream-"+key);if(el)el.textContent="…"+text.slice(-260)}};
     if(fresh)opts.cache=false;
     const raw=await sampleFn.json(buildPrompt(doc,sents,S.job,other,d),opts);
-    d.ai={...clean(raw||{},doc,sents),hash:hash(d.text),t:Date.now()};
+    d.ai={...clean(raw||{},doc,sents),hash:hash(d.text),t:Date.now()};d.base=null;
     ui.hist[key]=[];save();toast(`${doc.label} reviewed`);
   }catch(e){
     if(e&&e.code==="not_granted"){claudeState="denied";renderClaudeBar()}
@@ -599,7 +601,7 @@ async function reviewAll(){
 }
 
 /* ---------------- applying suggestions ---------------- */
-function snapshot(key){const d=S.docs[key];(ui.hist[key]=ui.hist[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai}));if(ui.hist[key].length>40)ui.hist[key].shift()}
+function snapshot(key){const d=S.docs[key];if(d.base==null)d.base=d.text;(ui.hist[key]=ui.hist[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai}));if(ui.hist[key].length>40)ui.hist[key].shift()}
 function commit(key){const d=S.docs[key];d.text=rebuild(d.model);d.modelHash=hash(d.text);d.ai.hash=d.modelHash;save()}
 function undo(key){const h=ui.hist[key];if(!h||!h.length)return;const v=JSON.parse(h.pop());const d=S.docs[key];d.text=v.text;d.model=v.model;d.ai=v.ai;d.modelHash=hash(d.text);save();renderAll();toast("Undone")}
 function applyIssue(key,k){
@@ -877,14 +879,16 @@ function renderDoc(){
     </div>
     <div class="acts row" style="justify-content:flex-end">
       ${running?`<button class="btn" id="stopBtn">Stop</button>`:`<button class="btn primary" id="runBtn" ${claudeState!=="ready"?"disabled":""}>${ai?"Review again":"Review with Claude"}</button>`}
+      <button class="btn" id="extBtn" title="Use your ChatGPT, Claude.ai or Gemini account">Review in ChatGPT / Claude.ai</button>
       <button class="btn" id="editBtn">Edit text</button>
       <button class="btn" id="replaceBtn">Replace</button>
       <button class="btn" id="dlDoc">Download .docx</button>
     </div></div>`;
+  if(ui.ext&&ui.ext[key])h+=extPanelHTML(key);
   if(running)h+=`<div class="notice info"><b class="dots">Reviewing</b> This usually takes 20–90 seconds.<div class="stream" id="stream-${key}">${esc((ui.stream[key]||"").slice(-260))}</div></div>`;
   if(d.err)h+=`<div class="notice bad">${esc(d.err)}</div>`;
   if(staleAi&&!running)h+=`<div class="notice">The text was edited by hand since the last review. Highlights and suggestions are hidden until you review again.</div>`;
-  if(ai&&appliedN)h+=`<div class="notice ok row" style="justify-content:space-between"><span><b>${appliedN} change${appliedN>1?"s":""} applied.</b> Scores reflect the original review. Review again to re-score the revised text.</span><span class="row"><button class="btn small" id="copyText">Copy revised text</button>${dlFn?`<button class="btn small" id="dlText">Download .txt</button>`:""}</span></div>`;
+  if(ai&&appliedN)h+=`<div class="notice ok row" style="justify-content:space-between"><span><b>${appliedN} change${appliedN>1?"s":""} applied.</b> Scores reflect the original review. <b>Download .docx</b> shows every change as a Word tracked change you can accept or reject.</span><span class="row"><button class="btn small" id="copyText">Copy revised text</button><button class="btn small" id="dlClean" title="All changes already accepted">Word, changes accepted</button>${dlFn?`<button class="btn small" id="dlText">Download .txt</button>`:""}</span></div>`;
   if(ai&&ai.summary)h+=`<div class="rise" style="--k:1;font-family:var(--f-display);font-size:19px;line-height:1.55;max-width:82ch">${esc(ai.summary)}</div>`;
   if(ai&&ai.why_me){const w=ai.why_me,t=w.verdict==="yes"?"ok":w.verdict==="partly"?"warn":"bad";
     h+=`<div class="panel whyme rise" style="--k:2"><div class="pill ${t}" style="font-size:18px;border-radius:12px;padding:10px 16px;font-family:var(--f-display)">${w.verdict==="yes"?"Yes":w.verdict==="partly"?"Partly":"No"}</div>
@@ -1032,7 +1036,7 @@ function inputView(doc,d){
 }
 function wireInput(doc,d){
   const key=doc.key;
-  const setText=(t,name)=>{d.text=t.replace(/\u00a0/g," ").trim();d.name=name||"Pasted text";d.err=null;ui.editing[key]=false;ui.sel=null;ui.focus=null;if(S.example)S.example=false;save();renderAll()};
+  const setText=(t,name)=>{d.base=null;d.text=t.replace(/\u00a0/g," ").trim();d.name=name||"Pasted text";d.err=null;ui.editing[key]=false;ui.sel=null;ui.focus=null;if(S.example)S.example=false;save();renderAll()};
   $("useText").onclick=()=>{const t=$("paste").value;if(!t.trim()){$("fileMsg").innerHTML=`<div class="notice">Paste some text or upload a file first.</div>`;return}setText(t,d.text.trim()?d.name:"Pasted text")};
   if($("cancelEdit"))$("cancelEdit").onclick=()=>{ui.editing[key]=false;renderDoc()};
   if($("removeDoc"))$("removeDoc").onclick=()=>{S.docs[key]=emptyDoc();ui.editing[key]=false;save();renderAll()};
@@ -1042,22 +1046,28 @@ function wireInput(doc,d){
   dr.ondragover=e=>{e.preventDefault();dr.classList.add("over")};dr.ondragleave=()=>dr.classList.remove("over");
   dr.ondrop=e=>{e.preventDefault();dr.classList.remove("over");handle(e.dataTransfer.files)};
 }
+function jumpTo(i){const el=document.querySelector(`#paper [data-s="${i}"]`)||(+i===-1?document.querySelector("#paper .s"):null);if(!el)return;
+  el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"});el.classList.remove("flash");void el.offsetWidth;el.classList.add("flash")}
 function leaveThen(btn,fn){const card=btn.closest(".sug");if(card&&!matchMedia("(prefers-reduced-motion: reduce)").matches){card.classList.add("leaving");setTimeout(fn,300)}else fn()}
 function wireDoc(doc,d,key){
   const q=s=>document.querySelectorAll(s);
   if($("runBtn"))$("runBtn").onclick=()=>review(key,!!d.ai);
   if($("stopBtn"))$("stopBtn").onclick=()=>ui.running[key]&&ui.running[key].abort();
+  $("extBtn").onclick=()=>{ui.ext=ui.ext||{};ui.ext[key]=!ui.ext[key];renderDoc();const p=$("extPanel");if(p)p.scrollIntoView({behavior:"smooth",block:"center"})};wireExt(key);
   $("editBtn").onclick=()=>{ui.editing[key]=true;renderDoc()};
   $("replaceBtn").onclick=()=>{ui.editing[key]=true;renderDoc();setTimeout(()=>{const p=$("paste");if(p){p.value="";p.focus()}},0)};
   q("[data-tg]").forEach(b=>b.onclick=()=>{ui[b.dataset.tg]=!ui[b.dataset.tg];renderDoc()});
   q("[data-side]").forEach(b=>b.onclick=()=>{ui.side=b.dataset.side;renderDoc()});
   q("[data-filter]").forEach(b=>b.onclick=()=>{ui.filter=b.dataset.filter;renderDoc()});
   if($("clearFocus"))$("clearFocus").onclick=()=>{ui.focus=null;renderDoc()};
-  q("[data-item]").forEach(b=>b.onclick=()=>{ui.focus=ui.focus===b.dataset.item?null:b.dataset.item;renderDoc()});
+  q("[data-item]").forEach(b=>b.onclick=()=>{const id=b.dataset.item;ui.focus=ui.focus===id?null:id;renderDoc();if(!ui.focus)return;
+    const c=d.ai&&d.ai.checklist?d.ai.checklist.find(z=>z.id===id):null;if(!c)return;
+    if(c.sentences.length)jumpTo(c.sentences[0]);else if(c.add){ui.focus=null;renderDoc();jumpTo(c.add.after);toast(`${id} is missing. The suggested text would go here.`)}else toast(`${id} is not covered anywhere in the text yet.`)});
   q("#paper .s").forEach(el=>{const f=()=>{ui.sel=Number(el.dataset.s);renderDoc()};el.onclick=f;el.onkeydown=e=>{if(e.key==="Enter")f()}});
   if($("closeSel"))$("closeSel").onclick=()=>{ui.sel=null;renderDoc()};
-  q("[data-goto]").forEach(b=>b.onclick=()=>{const card=b.closest(".sug");const [kind,ref]=card.dataset.sug.split(":");ui.hot={kind,k:kind==="i"?+ref:ref};ui.sel=+b.dataset.goto>=0?+b.dataset.goto:null;renderDoc();
-    const el=document.querySelector(`#paper [data-s="${b.dataset.goto}"]`);if(el)el.scrollIntoView({behavior:"smooth",block:"center"})});
+  const goCard=(card,target)=>{const [kind,ref]=card.dataset.sug.split(":");ui.hot={kind,k:kind==="i"?+ref:ref};ui.sel=+target>=0?+target:null;renderDoc();jumpTo(target)};
+  q("[data-goto]").forEach(b=>b.onclick=e=>{e.stopPropagation();goCard(b.closest(".sug"),b.dataset.goto)});
+  q(".sug[data-sug]").forEach(card=>{card.style.cursor="pointer";card.onclick=e=>{if(e.target.closest("button,textarea,a,input,label"))return;const g=card.querySelector("[data-goto]");if(g)goCard(card,g.dataset.goto)}});
   q("[data-acc]").forEach(b=>b.onclick=()=>{const [kind,ref]=b.dataset.acc.split(":");
     if(kind==="i"){leaveThen(b,()=>{if(applyIssue(key,+ref))toast("Fix applied","undo");renderAll()})}
     else{const txt=document.querySelector(`[data-addtxt="${ref}"]`).value;
@@ -1173,7 +1183,8 @@ function wireModePanels(doc,d,key){
     catch(e){if(e&&e.code==="not_granted"){claudeState="denied";renderClaudeBar()}if(!(e&&e.code==="cancelled"))toast(ERR[e&&e.code]||"Figure review failed. Try again.")}
     finally{ui.figBusy=false;renderDoc()}};
   if(MODE==="grant")wirePanel(key);
-  const dl=$("dlDoc");if(dl)dl.onclick=async()=>{dl.disabled=true;try{await saveFile(fileSafe(doc.label)+"_revised.docx",await makeDocx(d.text))}finally{dl.disabled=false}};
+  const dc=$("dlClean");if(dc)dc.onclick=async()=>{await saveFile(fileSafe(doc.label)+"_revised.docx",await makeDocx(d.text))};
+  const dl=$("dlDoc");if(dl)dl.onclick=async()=>{dl.disabled=true;try{await saveFile(fileSafe(doc.label)+(d.base&&d.base!==d.text?"_tracked_changes.docx":"_revised.docx"),await makeDocx(d.text,null,d.base))}finally{dl.disabled=false}};
 }
 
 /* ---------------- tools: budget + funded comparison ---------------- */
@@ -1302,7 +1313,7 @@ async function downloadAll(){
   try{
     if(MODE==="refs"){if(!ALL.refs.text.trim()){toast("Add an article first");return}
       files.push({name:"article_cleaned.docx",data:await makeDocx(cleanText(ALL.refs.text))},{name:"reference_check.md",data:refsReport()})}
-    else{for(const d of DOCS){const x=S.docs[d.key];if(x.text.trim())files.push({name:fileSafe(d.label)+"_revised.docx",data:await makeDocx(x.text)})}
+    else{for(const d of DOCS){const x=S.docs[d.key];if(x.text.trim())files.push({name:fileSafe(d.label)+(x.base&&x.base!==x.text?"_tracked_changes.docx":"_revised.docx"),data:await makeDocx(x.text,null,x.base)})}
       if(!files.length){toast("Add a document first");return}
       files.push({name:"review_report.md",data:report()});if(MODE==="grant")files.push({name:"budget.csv",data:budgetCSV(ALL.budget)})}
     await saveFile(`${fileSafe(MODE_TABS.find(t=>t[0]===ALL.mode)[1])}_files.zip`,await zipFiles(files));
@@ -1387,6 +1398,39 @@ function seatHTML(k,r,field){
 function wirePanel(key){
   const pr=$("panelRun");if(pr)pr.onclick=()=>runPanel(key,$("panelMode").value);
   document.querySelectorAll("[data-ptab]").forEach(b=>b.onclick=()=>{ui.panelTab=b.dataset.ptab;renderDoc()});
+}
+
+
+/* ---------------- review with your own ChatGPT / Claude.ai / Gemini account (copy and paste) ---------------- */
+const EXT_SITES=[["ChatGPT","https://chatgpt.com/"],["Claude.ai","https://claude.ai/new"],["Gemini","https://gemini.google.com/app"]];
+function extPrompt(key){const doc=DOCMAP[key],d=S.docs[key];d.model=splitDoc(d.text);d.modelHash=hash(d.text);
+  let other="";if(MODE==="faculty"&&key==="cover"){other=["research","teaching","extension"].map(k=>S.docs[k].text.trim()?`[${DOCMAP[k].label}]\n${S.docs[k].text.trim().slice(0,3000)}`:"").filter(Boolean).join("\n\n")}
+  return buildPrompt(doc,d.model,S.job,other,d)+"\n\nReply with only the JSON object in one code block, nothing else.";}
+function extParse(text){const t=String(text||"").trim();const tries=[t,(t.match(/```(?:json)?\s*([\s\S]*?)```/)||[])[1],t.slice(t.indexOf("{"),t.lastIndexOf("}")+1)];
+  for(const x of tries){if(!x)continue;try{const v=JSON.parse(x);if(v&&typeof v==="object")return v}catch(e){}}return null}
+function extPanelHTML(key){
+  return `<section class="panel" id="extPanel" style="display:grid;gap:10px;border-color:var(--accent)">
+    <div class="row" style="justify-content:space-between"><div><div class="eyebrow">Use your own ChatGPT, Claude or Gemini account · no API key</div><h3>Review by copy and paste</h3></div><button class="btn small" id="extClose">Close</button></div>
+    <ol class="clean" style="margin:0">
+      <li><b>Copy the prompt and open your AI:</b> <span class="row" style="display:inline-flex;gap:6px;margin-left:4px">${EXT_SITES.map(([n,u])=>`<a class="btn small" href="${u}" target="_blank" rel="noopener" data-extopen="1">${n} ↗</a>`).join("")}<button class="btn small" id="extCopy">Copy prompt only</button></span> <span id="extCopied" class="muted" style="font-size:12px"></span></li>
+      <li>In the chat, paste (<b>Ctrl+V</b> / <b>⌘V</b>) and send. A stronger model gives a better review.</li>
+      <li>Copy the whole reply (the JSON) and paste it below, then press <b>Load review</b>.</li></ol>
+    <textarea id="extPromptBox" rows="4" readonly hidden></textarea>
+    <textarea id="extReply" rows="5" placeholder="Paste the reply here. It starts with {"></textarea>
+    <div class="row"><button class="btn primary" id="extLoad">Load review</button><span id="extMsg" class="muted" style="font-size:12.5px"></span></div></section>`;
+}
+function wireExt(key){
+  const panel=$("extPanel");if(!panel)return;
+  const copy=async()=>{const p=extPrompt(key);let ok=false;try{await navigator.clipboard.writeText(p);ok=true}catch(e){}
+    $("extCopied").textContent=ok?`Copied (${Math.round(p.length/1000)}k characters).`:"Copy was blocked: select the text below and copy it.";
+    const box=$("extPromptBox");if(!ok){box.hidden=false;box.value=p;box.focus();box.select()}return ok};
+  $("extCopy").onclick=copy;
+  panel.querySelectorAll("[data-extopen]").forEach(a=>a.onclick=()=>{copy()});
+  $("extClose").onclick=()=>{ui.ext[key]=false;renderDoc()};
+  $("extLoad").onclick=()=>{const raw=$("extReply").value;const v=extParse(raw);
+    if(!v||!Array.isArray(v.checklist)){$("extMsg").textContent="That doesn't look like the review. Paste the whole reply, starting with {.";return}
+    const doc=DOCMAP[key],d=S.docs[key];const sents=getModel(d);
+    d.ai={...clean(v,doc,sents),hash:hash(d.text),t:Date.now(),via:"pasted"};d.base=null;d.err=null;ui.hist[key]=[];ui.ext[key]=false;save();renderAll();toast("Review loaded")};
 }
 
 /* ---------------- report ---------------- */

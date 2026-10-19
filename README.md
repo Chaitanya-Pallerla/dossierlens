@@ -59,7 +59,7 @@ Every review uses the same format:
 - **Scorecard:** six 1-10 scores, checklist coverage and an overall score out of 100.
 - **Checklist:** each item is marked ✅ met, ◐ partly met or ❌ missing, with **line numbers**.
 - **Numbered suggestions:** each shows the exact words, the replacement and the reason, including drafts for missing items with `[placeholders]` for facts only you know.
-- **Accept flow:** reply `apply 1 3 5`, `apply all` or `apply all grammar` and you get a revised file plus a **Word (.docx)** copy. Your original is never overwritten.
+- **Accept flow:** reply `apply 1 3 5`, `apply all` or `apply all grammar` and you get a revised file plus a **Word (.docx)** copy in which every accepted change is a **tracked change**, so you can review, accept or reject each one in Word. Your original is never overwritten.
 
 ---
 
@@ -229,6 +229,8 @@ In the **Codex desktop app**, open **Plugins**, add the repository `Chaitanya-Pa
 
 ### 6. ChatGPT (custom GPT or Project)
 
+> **Quickest way, no setup:** in the [web app](#8-the-web-app), open a document and click **Review in ChatGPT / Claude.ai**. It copies the review prompt and opens ChatGPT; paste, send, and paste the reply back. The page then shows the same highlights, scores and tick-to-accept fixes, using your own ChatGPT login.
+
 No install, and it works on the web and in the mobile apps.
 
 **Custom GPT** (ChatGPT Plus or higher)
@@ -262,7 +264,10 @@ The visual version gives you:
 |---|---|---|
 | **A. Hosted** | Open **https://chaitanya-pallerla.github.io/dossierlens/** | Click **Connect** and paste your own **Claude** or **OpenAI** API key ([get a Claude key](https://console.anthropic.com/settings/keys) · [get an OpenAI key](https://platform.openai.com/api-keys)). The key stays in your browser. |
 | **B. On your computer** | `git clone https://github.com/Chaitanya-Pallerla/dossierlens.git` <br> `cd dossierlens/docs && python -m http.server 8765` <br> then open http://localhost:8765 | Same as A |
+| **B2. Your ChatGPT, Claude.ai or Gemini login, no key** | In either A or B, open a document and click **Review in ChatGPT / Claude.ai**: the prompt is copied and the chat opens; paste, send, then paste the reply back and click **Load review** | Your existing chat account |
 | **C. In claude.ai, with your Claude subscription** | In Claude Code, run `/dossierlens:open-app` and ask Claude to publish it as an artifact | Uses your Claude account; no key |
+
+Clicking a checklist item or a suggestion jumps to that sentence in the text. **Download .docx** puts every accepted change in Word as a tracked change (Review → Accept / Reject); **Word, changes accepted** gives a clean copy.
 
 Without a key you still get uploads (`.docx`, `.pdf`, `.zip`), packet splitting, instant writing checks, the citation cross-check, AI-trace cleaning, the integrity checks and the budget calculator.
 

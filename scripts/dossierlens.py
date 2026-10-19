@@ -7,7 +7,8 @@ Subcommands
                                                acronyms, tortured phrases, citation cross-check, job-ad echo)
   clean   FILE     -o OUT                      strip hidden characters, chat markers, AI-link tags, stray Markdown
   budget  CONFIG.json [--csv OUT] | --example  grant budget by year with F&A on MTDC and a split by aim
-  docx    FILE     -o OUT.docx [--title T]     write plain text to a Word file; [brackets] are highlighted
+  docx    FILE     -o OUT.docx [--title T] [--original ORIG]   write a Word file; [brackets] highlighted;
+                                               with --original, changes appear as Word tracked changes
 
 Parts of the checks are adapted from Academic Research Skills by Cheng-I Wu
 (https://github.com/Imbad0202/academic-research-skills, CC BY-NC 4.0): the uncited-assertion rule (D4-c),
@@ -466,7 +467,69 @@ def budget_markdown(cfg, b):
     return "\n".join(lines)
 
 # ---------------------------------------------------------------- docx writer
-def write_docx(text: str, out: str, title: str | None = None):
+def _tokens(text: str):
+    out = []
+    for i, p in enumerate([p.strip() for p in text.splitlines() if p.strip()]):
+        if i:
+            out.append("\n")
+        out += [t for t in re.split(r"(\s+)", p) if t]
+    return out
+
+def _tracked_body(base: str, text: str, run, esc) -> str:
+    """Word tracked changes: unchanged words as normal runs, insertions in <w:ins>, deletions in <w:del>."""
+    a, b = _tokens(base), _tokens(text)
+    ops = []
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, a, b, autojunk=False).get_opcodes():
+        if tag == "equal":
+            ops += [("=", t) for t in a[i1:i2]]
+        else:
+            ops += [("-", t) for t in a[i1:i2]] + [("+", t) for t in b[j1:j2]]
+    paras, cur = [], []
+    for t, v in ops:
+        if v == "\n":
+            if t != "-":
+                paras.append(cur); cur = []
+            continue
+        if cur and cur[-1][0] == t:
+            cur[-1][1] += v
+        else:
+            cur.append([t, v])
+    paras.append(cur)
+    date = __import__("datetime").datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    rid = [0]
+    def nid():
+        rid[0] += 1; return rid[0]
+    def tidy(segs):  # absorb tiny unchanged pieces between changes; one deletion then one insertion per stretch
+        out, d, ins, open_ = [], "", "", False
+        for i, (t, v) in enumerate(segs):
+            if t == "=":
+                nxt = segs[i + 1] if i + 1 < len(segs) else None
+                if open_ and nxt and nxt[0] != "=" and len(v.split()) <= 2 and len(v) <= 14:
+                    d += v; ins += v; continue
+                if d: out.append(["-", d])
+                if ins: out.append(["+", ins])
+                d, ins, open_ = "", "", False; out.append([t, v]); continue
+            open_ = True
+            if t == "-": d += v
+            else: ins += v
+        if d: out.append(["-", d])
+        if ins: out.append(["+", ins])
+        return out
+    xml = []
+    for segs in [tidy(p) for p in paras if p]:
+        final = "".join(v for t, v in segs if t != "-").strip()
+        head = len(final) < 90 and not re.search(r"[.,;:]$", final) and bool(head_type(final) or (re.fullmatch(r"[A-Z][A-Za-z ,&/-]{2,60}", final) and len(final.split()) <= 8))
+        inner = []
+        for t, v in segs:
+            if t == "-":
+                inner.append(f'<w:del w:id="{nid()}" w:author="DossierLens" w:date="{date}"><w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>{"<w:b/>" if head else ""}<w:sz w:val="22"/></w:rPr><w:delText xml:space="preserve">{esc(v)}</w:delText></w:r></w:del>')
+                continue
+            runs = "".join(run(p, head, i % 2 == 1) for i, p in enumerate(re.split(r"(\[[^\]\n]{1,80}\])", v)) if p)
+            inner.append(f'<w:ins w:id="{nid()}" w:author="DossierLens" w:date="{date}">{runs}</w:ins>' if t == "+" else runs)
+        xml.append(f'<w:p><w:pPr><w:spacing w:after="{80 if head else 160}"/></w:pPr>{"".join(inner)}</w:p>')
+    return "".join(xml)
+
+def write_docx(text: str, out: str, title: str | None = None, base: str | None = None):
     esc = lambda s: s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
     def run(t, b=False, hl=False):
         return (f'<w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/>{"<w:b/>" if b else ""}{"<w:highlight w:val=\"yellow\"/>" if hl else ""}'
@@ -475,10 +538,16 @@ def write_docx(text: str, out: str, title: str | None = None):
         head = len(line) < 90 and not re.search(r"[.,;:]$", line) and (head_type(line) or (re.fullmatch(r"[A-Z][A-Za-z ,&/-]{2,60}", line) and len(line.split()) <= 8))
         parts = re.split(r"(\[[^\]\n]{1,80}\])", line)
         return f'<w:p><w:pPr><w:spacing w:after="{80 if head else 160}"/></w:pPr>' + "".join(run(p, bool(head), i % 2 == 1) for i, p in enumerate(parts) if p) + "</w:p>"
-    body = (f'<w:p>{run(title, True)}</w:p>' if title else "") + "".join(para(l.strip()) for l in text.splitlines() if l.strip())
+    tracked = bool(base and base.strip() and base.strip() != text.strip())
+    if tracked:
+        body = (f'<w:p>{run(title, True)}</w:p>' if title else "") + _tracked_body(base, text, run, esc)
+    else:
+        body = (f'<w:p>{run(title, True)}</w:p>' if title else "") + "".join(para(l.strip()) for l in text.splitlines() if l.strip())
     with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
-        z.writestr("[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>')
+        z.writestr("[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/settings.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.settings+xml"/></Types>')
         z.writestr("_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>')
+        z.writestr("word/_rels/document.xml.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/settings" Target="settings.xml"/></Relationships>')
+        z.writestr("word/settings.xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' + ("<w:trackRevisions/>" if tracked else "") + "</w:settings>")
         z.writestr("word/document.xml", f'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>{body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>')
 
 # ---------------------------------------------------------------- CLI
@@ -491,7 +560,7 @@ def main(argv=None):
     c = sp.add_parser("check"); c.add_argument("file"); c.add_argument("--type", default="auto", choices=["auto", "faculty", "resume", "grant", "refs", "research"]); c.add_argument("--jd"); c.add_argument("--json", action="store_true")
     cl = sp.add_parser("clean"); cl.add_argument("file"); cl.add_argument("-o", "--out", required=True)
     b = sp.add_parser("budget"); b.add_argument("config", nargs="?"); b.add_argument("--csv"); b.add_argument("--example", action="store_true")
-    d = sp.add_parser("docx"); d.add_argument("file"); d.add_argument("-o", "--out", required=True); d.add_argument("--title")
+    d = sp.add_parser("docx"); d.add_argument("file"); d.add_argument("-o", "--out", required=True); d.add_argument("--title"); d.add_argument("--original", help="original file: accepted changes become Word tracked changes")
     a = ap.parse_args(argv)
 
     if a.cmd == "extract":
@@ -529,7 +598,9 @@ def main(argv=None):
                     w.writerow([k] + [round(v) for v in arr] + [round(sum(arr))])
             print(f"\nCSV written to {a.csv}")
     elif a.cmd == "docx":
-        write_docx(open(a.file, encoding="utf-8").read(), a.out, a.title); print(f"Word file written to {a.out}")
+        base = fix_text("\n".join(t for _, t in read_any(a.original))) if a.original else None
+        write_docx(fix_text("\n".join(t for _, t in read_any(a.file))), a.out, a.title, base)
+        print(f"Word file written to {a.out}" + (" with tracked changes against " + a.original if base else ""))
 
 def _report(r):
     w = r["writing"]; s = r["ai_scan"]; out = [f"## Instant checks\n\n{w['words']} words, {w['sentences']} sentences."]

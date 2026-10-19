@@ -14,6 +14,6 @@ The app lives in `../../docs/` (`index.html` plus its `.js` files and `grants.js
    python -m http.server 8765
    ```
    Then open http://localhost:8765 . Opening `index.html` directly also works, but the funding list needs the server.
-3. **claude.ai artifact (uses the person's Claude account, no API key):** if the Artifact tool is available, publish `<plugin root>/docs/index.html` with the supporting files `provider.js, checklists.js, aiscan.js, budget.js, compare.js, funding.js, ars.js, grants.json` and the capabilities `sample` (with images), `downloads` and `db`.
+3. **claude.ai artifact (uses the person's Claude account, no API key):** if the Artifact tool is available, publish `<plugin root>/docs/index.html` with the supporting files `provider.js, tracked.js, checklists.js, aiscan.js, budget.js, compare.js, funding.js, ars.js, grants.json` and the capabilities `sample` (with images), `downloads` and `db`.
 
 Tell the person that documents are processed in their browser and sent only to the AI provider they connect.
