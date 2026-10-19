@@ -133,6 +133,7 @@ textarea{resize:vertical;line-height:1.5}
 .s.added{box-shadow:inset 0 -2px 0 var(--ok);background:var(--ok-soft)}
 .s.flash{animation:flash 2.4s ease-out}
 .sug[data-sug]:hover{border-color:var(--accent)}
+.sug.hot{box-shadow:0 0 0 2px var(--accent),0 14px 30px -14px var(--shadow)}
 @keyframes flash{0%{background:var(--ok);box-shadow:0 0 0 6px var(--ok-soft)}100%{}}
 .paper.focus .s:not(.on){opacity:.25;background:none}
 .badge{display:inline-block;font-family:var(--f-mono);font-size:10px;font-weight:600;line-height:1;padding:2px 4px;border-radius:4px;margin-right:3px;vertical-align:2px;color:#fff;background:hsl(var(--h),62%,var(--badge-l))}
@@ -836,7 +837,7 @@ function renderStrip(){
       <button class="dtab glass" role="tab" aria-selected="${S.active==="tool:compare"}" data-tab="tool:compare"><span class="name">Compare with funded</span><span class="meta"><span class="score" style="font-size:16px">${ALL.examples.length}</span><span class="pill">${ALL.examples.length===1?"example":"examples"}</span></span><span class="bar"><i style="width:${Math.min(100,ALL.examples.length*20)}%"></i></span></button>`}
   $("strip").style.setProperty("--n",DOCS.length+(MODE==="grant"?2:0));
   $("strip").innerHTML=h;
-  $("strip").querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{S.active=b.dataset.tab;ui.focus=null;ui.sel=null;ui.hot=null;save();renderStrip();renderDoc()});
+  $("strip").querySelectorAll("[data-tab]").forEach(b=>b.onclick=()=>{S.active=b.dataset.tab;ui.focus=null;ui.focusSent=null;ui.sel=null;ui.hot=null;save();renderStrip();renderDoc()});
 }
 function renderDup(){
   const r=crossDup();
@@ -896,12 +897,12 @@ function renderDoc(){
 
   // ---- paper with highlights
   const hotIss=ui.hot&&ui.hot.kind==="i"?ui.hot.k:null;
-  const paperCls=["paper","rise",ui.showColor?"":"nocolor",ui.showIssues?"":"noissues",ui.focus?"focus":""].join(" ");
+  const paperCls=["paper","rise",ui.showColor?"":"nocolor",ui.showIssues?"":"noissues",(ui.focus||ui.focusSent!=null)?"focus":""].join(" ");
   let paras="",lastP=null,cur="";
   sents.forEach(s=>{
     if(s.p!==lastP){if(lastP!==null)paras+=`<p>${cur}</p>`;cur="";lastP=s.p}
     const its=(sItems[s.i]||[]);const first=its[0]?itemById[its[0]]:null;
-    const on=ui.focus&&its.includes(ui.focus);
+    const on=(ui.focus&&its.includes(ui.focus))||(ui.focusSent!=null&&s.i===ui.focusSent);
     let inner=markWords(s.t,repSet,jdSet);
     const iss=(sIss[s.i]||[]);
     iss.forEach(k=>{const x=ai.issues[k];if(!x.quote)return;const q=markWords(x.quote,repSet,jdSet);const pos=inner.indexOf(q);
@@ -916,7 +917,7 @@ function renderDoc(){
 
   const tgs=[["showColor","Checklist colors"],["showIssues","Writing issues"],["showRep",`Overused words (${L.overused.length})`],["showJD","Job-ad keywords"]];
   h+=`<div class="review"><div style="display:grid;gap:10px;min-width:0">
-    <div class="toggles">${tgs.map(([k,l])=>k==="showJD"&&!L.jd?"":`<button class="tg" data-tg="${k}" aria-pressed="${ui[k]}">${l}</button>`).join("")}${ui.focus?`<button class="tg" id="clearFocus" aria-pressed="true">Showing ${ui.focus} only ✕</button>`:""}</div>
+    <div class="toggles">${tgs.map(([k,l])=>k==="showJD"&&!L.jd?"":`<button class="tg" data-tg="${k}" aria-pressed="${ui[k]}">${l}</button>`).join("")}${(ui.focus||ui.focusSent!=null)?`<button class="tg" id="clearFocus" aria-pressed="true">Showing ${ui.focus?ui.focus:(ui.focusSent>=1000?"added text":"line "+(ui.lineOf[ui.focusSent]||""))} only ✕</button>`:""}</div>
     <div class="legend">
       <span><i class="sw" style="background:var(--bad)"></i>wavy: grammar</span><span><i class="sw" style="background:var(--warn)"></i>dotted: unclear</span>
       <span><i class="sw" style="background:var(--violet)"></i>double: overpromising</span><span><i class="sw" style="background:var(--sky)"></i>dashed: job-ad echo</span>
@@ -1048,7 +1049,7 @@ function wireInput(doc,d){
 }
 function jumpTo(i){const el=document.querySelector(`#paper [data-s="${i}"]`)||(+i===-1?document.querySelector("#paper .s"):null);if(!el)return;
   el.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"center"});el.classList.remove("flash");void el.offsetWidth;el.classList.add("flash")}
-function leaveThen(btn,fn){const card=btn.closest(".sug");if(card&&!matchMedia("(prefers-reduced-motion: reduce)").matches){card.classList.add("leaving");setTimeout(fn,300)}else fn()}
+function leaveThen(btn,fn){ui.focusSent=null;ui.hot=null;const card=btn.closest(".sug");if(card&&!matchMedia("(prefers-reduced-motion: reduce)").matches){card.classList.add("leaving");setTimeout(fn,300)}else fn()}
 function wireDoc(doc,d,key){
   const q=s=>document.querySelectorAll(s);
   if($("runBtn"))$("runBtn").onclick=()=>review(key,!!d.ai);
@@ -1059,13 +1060,15 @@ function wireDoc(doc,d,key){
   q("[data-tg]").forEach(b=>b.onclick=()=>{ui[b.dataset.tg]=!ui[b.dataset.tg];renderDoc()});
   q("[data-side]").forEach(b=>b.onclick=()=>{ui.side=b.dataset.side;renderDoc()});
   q("[data-filter]").forEach(b=>b.onclick=()=>{ui.filter=b.dataset.filter;renderDoc()});
-  if($("clearFocus"))$("clearFocus").onclick=()=>{ui.focus=null;renderDoc()};
-  q("[data-item]").forEach(b=>b.onclick=()=>{const id=b.dataset.item;ui.focus=ui.focus===id?null:id;renderDoc();if(!ui.focus)return;
+  if($("clearFocus"))$("clearFocus").onclick=()=>{ui.focus=null;ui.focusSent=null;ui.hot=null;renderDoc()};
+  q("[data-item]").forEach(b=>b.onclick=()=>{const id=b.dataset.item;ui.focusSent=null;ui.focus=ui.focus===id?null:id;renderDoc();if(!ui.focus)return;
     const c=d.ai&&d.ai.checklist?d.ai.checklist.find(z=>z.id===id):null;if(!c)return;
     if(c.sentences.length)jumpTo(c.sentences[0]);else if(c.add){ui.focus=null;renderDoc();jumpTo(c.add.after);toast(`${id} is missing. The suggested text would go here.`)}else toast(`${id} is not covered anywhere in the text yet.`)});
   q("#paper .s").forEach(el=>{const f=()=>{ui.sel=Number(el.dataset.s);renderDoc()};el.onclick=f;el.onkeydown=e=>{if(e.key==="Enter")f()}});
   if($("closeSel"))$("closeSel").onclick=()=>{ui.sel=null;renderDoc()};
-  const goCard=(card,target)=>{const [kind,ref]=card.dataset.sug.split(":");ui.hot={kind,k:kind==="i"?+ref:ref};ui.sel=+target>=0?+target:null;renderDoc();jumpTo(target)};
+  const goCard=(card,target)=>{const [kind,ref]=card.dataset.sug.split(":");const k=kind==="i"?+ref:ref;const t=+target;
+    if(ui.hot&&ui.hot.kind===kind&&ui.hot.k===k&&ui.focusSent!=null){ui.hot=null;ui.focusSent=null;ui.sel=null;renderDoc();return}
+    ui.hot={kind,k};ui.focus=null;ui.focusSent=t>=0?t:(document.querySelector("#paper .s")?+document.querySelector("#paper .s").dataset.s:null);ui.sel=t>=0?t:null;renderDoc();jumpTo(target)};
   q("[data-goto]").forEach(b=>b.onclick=e=>{e.stopPropagation();goCard(b.closest(".sug"),b.dataset.goto)});
   q(".sug[data-sug]").forEach(card=>{card.style.cursor="pointer";card.onclick=e=>{if(e.target.closest("button,textarea,a,input,label"))return;const g=card.querySelector("[data-goto]");if(g)goCard(card,g.dataset.goto)}});
   q("[data-acc]").forEach(b=>b.onclick=()=>{const [kind,ref]=b.dataset.acc.split(":");
