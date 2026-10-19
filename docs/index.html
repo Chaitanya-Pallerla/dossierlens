@@ -133,6 +133,19 @@ textarea{resize:vertical;line-height:1.5}
 .s.added{box-shadow:inset 0 -2px 0 var(--ok);background:var(--ok-soft)}
 .s.flash{animation:flash 2.4s ease-out}
 .sug[data-sug]:hover{border-color:var(--accent)}
+.paper.rich{font-family:var(--docfont);font-size:var(--docsize);line-height:1.5}
+.paper.rich p{white-space:pre-wrap;overflow-wrap:anywhere}
+.paper.rich p.li{padding-left:1.3em;text-indent:-1em}.paper.rich p.li::before{content:"•\00a0\00a0"}
+.paper.rich p.pe{min-height:1em}
+.paper.editing{outline:2px dashed var(--accent);outline-offset:4px;cursor:text;caret-color:#E11D48}.paper.editing:focus{outline-style:solid}
+.edwrap{position:relative}
+.lineband{position:absolute;left:6px;right:6px;z-index:3;pointer-events:none;display:none;border-left:3px solid #E11D48;border-radius:4px;background:rgba(225,29,72,.07);transition:top .08s ease-out}
+.paper.editing p{transition:opacity .2s,color .4s}
+.paper.editing.focusing > p:not(.cur){opacity:.4}
+.paper.editing > p.typing{color:var(--accent)}
+.edbar{position:sticky;top:calc(10px + env(safe-area-inset-top,0px));z-index:7;display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:8px 10px;border-radius:12px}
+.edbar select{width:auto;padding:5px 8px;font-size:12.5px}
+.edb{min-width:32px;height:30px;border:1px solid var(--line);border-radius:8px;background:var(--glass-strong);font-size:14px}.edb:hover{border-color:var(--accent)}
 .docbar{position:sticky;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:6;display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;width:max-content;max-width:100%;margin:0 auto;padding:8px 12px;border-radius:14px}
 .ideas{display:grid;gap:8px;padding:10px;border-radius:12px;background:var(--sunken);border:1px dashed var(--line)}
 .idea{display:grid;gap:4px;padding:8px 10px;border-radius:10px;background:var(--glass-strong)}
@@ -364,6 +377,7 @@ mark.citebad{background:var(--bad-soft);color:var(--bad);border-radius:3px;font-
 <script src="budget.js"></script>
 <script src="compare.js"></script>
 <script src="tracked.js"></script>
+<script src="richdoc.js"></script>
 <script src="funding.js"></script>
 <script src="ars.js"></script>
 <script>
@@ -483,8 +497,11 @@ let ui={lineOf:{},figs:{},figAi:{},srcFiles:{},cmp:null,editing:{},focus:null,se
 
 // The sentence model keeps the reviewed sentence ids stable while suggestions are applied.
 function getModel(d){
-  if(d.model&&d.modelHash===hash(d.text))return d.model;
-  d.model=splitDoc(d.text);d.modelHash=hash(d.text);return d.model;
+  if(d.rich&&d.model&&d.modelHash===hash(d.text))return d.model;
+  if(!d.rich&&d.model&&d.model.length&&d.modelHash===hash(d.text)){ // older saved document: convert, keeping sentence ids
+    const r=richFromModel(d.model);const ok=d.ai&&d.ai.hash===hash(d.text);d.rich={paras:r.props,pkg:null,defaults:null};d.model=r.model;d.text=richText(d);d.modelHash=hash(d.text);if(ok)d.ai.hash=d.modelHash;
+    if(d.base&&!d.baseRich){const b=splitRich(plainParas(d.base));d.baseRich=JSON.stringify({props:b.props,model:b.model})}return d.model}
+  setDocRich(d,plainParas(d.text),d.rich?d.rich.pkg:null,d.rich?d.rich.defaults:null);return d.model;
 }
 const validAi=d=>d.ai&&d.ai.hash===hash(d.text)?d.ai:null;
 
@@ -585,7 +602,7 @@ async function review(key,fresh){
   if(!sampleFn||ui.running[key])return;
   const doc=DOCMAP[key],d=S.docs[key];if(!d.text.trim())return;
   // re-split so new sentence ids line up with the current text
-  d.model=splitDoc(d.text);d.modelHash=hash(d.text);const sents=d.model;
+  const sents=getModel(d);
   let other="";
   if(MODE==="faculty"&&key==="cover"){other=["research","teaching","extension"].map(k=>S.docs[k].text.trim()?`[${DOCMAP[k].label}]\n${S.docs[k].text.trim().slice(0,3000)}`:"").filter(Boolean).join("\n\n")}
   const ctl=new AbortController();ui.running[key]=ctl;ui.stream[key]="";d.err=null;renderStrip();if(S.active===key)renderDoc();
@@ -606,14 +623,14 @@ async function reviewAll(){
 }
 
 /* ---------------- applying suggestions ---------------- */
-function snapshot(key){const d=S.docs[key];if(d.base==null)d.base=d.text;ui.redo=ui.redo||{};ui.redo[key]=[];(ui.hist[key]=ui.hist[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai}));if(ui.hist[key].length>40)ui.hist[key].shift()}
-function commit(key){const d=S.docs[key];d.text=rebuild(d.model);d.modelHash=hash(d.text);d.ai.hash=d.modelHash;save()}
-function undo(key){const h=ui.hist[key];if(!h||!h.length)return;const d=S.docs[key];ui.redo=ui.redo||{};(ui.redo[key]=ui.redo[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai}));const v=JSON.parse(h.pop());d.text=v.text;d.model=v.model;d.ai=v.ai;d.modelHash=hash(d.text);save();renderAll();toast("Undone")}
+function snapshot(key){const d=S.docs[key];if(d.base==null){d.base=d.text;d.baseRich=d.rich?JSON.stringify({props:d.rich.paras,model:d.model}):null}ui.redo=ui.redo||{};ui.redo[key]=[];(ui.hist[key]=ui.hist[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai,paras:d.rich?d.rich.paras:null}));if(ui.hist[key].length>40)ui.hist[key].shift()}
+function commit(key){const d=S.docs[key];d.text=d.rich?richText(d):rebuild(d.model);d.modelHash=hash(d.text);d.ai.hash=d.modelHash;save()}
+function undo(key){const h=ui.hist[key];if(!h||!h.length)return;const d=S.docs[key];ui.redo=ui.redo||{};(ui.redo[key]=ui.redo[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai,paras:d.rich?d.rich.paras:null}));const v=JSON.parse(h.pop());if(v.paras&&d.rich)d.rich.paras=v.paras;d.text=v.text;d.model=v.model;d.ai=v.ai;d.modelHash=hash(d.text);save();renderAll();toast("Undone")}
 function applyIssue(key,k){
   const d=S.docs[key],ai=validAi(d);if(!ai)return false;const x=ai.issues[k];if(!x||x.state)return false;
   const m=getModel(d);const s=m.find(z=>z.i===x.s);
   if(!s||!x.quote||!s.t.includes(x.quote)){toast("That text has changed, so this fix can't be placed. Edit it by hand.");return false}
-  snapshot(key);s.t=s.t.replace(x.quote,()=>x.replacement).replace(/\s{2,}/g," ").replace(/\s+([,.;:])/g,"$1");x.state="accepted";commit(key);ui.flash=x.s;return true;
+  snapshot(key);if(d.rich)setSentText(s,s.t.replace(x.quote,()=>x.replacement));else s.t=s.t.replace(x.quote,()=>x.replacement).replace(/\s{2,}/g," ").replace(/\s+([,.;:])/g,"$1");x.state="accepted";commit(key);ui.flash=x.s;return true;
 }
 function applyAdd(key,id,text){
   const d=S.docs[key],ai=validAi(d);if(!ai)return false;const c=ai.checklist.find(z=>z.id===id);if(!c||!c.add)return false;
@@ -625,6 +642,12 @@ function applyAdd(key,id,text){
   const ref=idx>=0?m[idx]:m[0];
   // skip past any text already inserted after the same anchor
   while(idx+1<m.length&&m[idx+1].added&&m[idx+1].anchor===c.add.after)idx++;
+  if(d.rich){const prev=idx>=0?m[idx]:null;let p,ws=" ";
+    if(c.add.new_paragraph){p=(prev?prev.p:-1)+1;const src=d.rich.paras[prev?prev.p:ref.p]||{pPr:"",f:{}};d.rich.paras.splice(p,0,{pPr:src.pPr,f:{...src.f}});m.forEach(z=>{if(z.p>=p)z.p++});ws=""}
+    else if(prev){p=prev.p;const nxt=m[idx+1];if(!nxt||nxt.p!==prev.p){ws=prev.ws||"";setSentText(prev,prev.t,(prev.ws||"").includes("\u2028")?prev.ws:" ")}else ws=prev.ws||" "}
+    else{p=ref.p}
+    const dom=dominantRun(prev||ref);m.splice(idx+1,0,{i:newId,p,t:text,ws,runs:[{t:text+ws,rPr:dom.rPr,f:dom.f}],added:true,anchor:c.add.after,item:id});
+    c.sentences=[...c.sentences,newId];c.applied=true;commit(key);ui.flash=newId;return true}
   const p=c.add.new_paragraph?(idx>=0?m[idx].p+0.001+newId*1e-7:-1):(idx>=0?m[idx].p:ref.p);
   m.splice(idx+1,0,{i:newId,p,t:text,added:true,anchor:c.add.after,item:id});
   c.sentences=[...c.sentences,newId];c.applied=true;commit(key);ui.flash=newId;return true;
@@ -658,9 +681,9 @@ async function readFile(file){
   const name=file.name.toLowerCase();const meta={type:name.split(".").pop()};META[file.name]=meta;
   if(name.endsWith(".docx")){
     await loadScript("https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js");
-    const ab=await file.arrayBuffer();const r=await window.mammoth.extractRawText({arrayBuffer:ab});
+    const ab=await file.arrayBuffer();const r=await window.mammoth.extractRawText({arrayBuffer:ab.slice(0)});try{meta.rich=await parseDocxRich(ab.slice(0))}catch(e){meta.rich=null}
     try{const html=(await window.mammoth.convertToHtml({arrayBuffer:ab.slice(0)})).value;meta.tables=(html.match(/<table/g)||[]).length;meta.images=(html.match(/<img/g)||[]).length}catch(e){}
-    return fixLig(r.value);
+    return meta.rich&&meta.rich.paras.length?meta.rich.paras.map(paraText).join("\n"):fixLig(r.value);
   }
   if(name.endsWith(".pdf")){
     const lib=await ensurePdf();meta.fromPdf=true;
@@ -773,14 +796,14 @@ async function importFiles(list,hint){
   const {files,errs}=await expandFiles([...list]);
   const secs=[];
   files.forEach(f=>{if(!f.text||!f.text.trim()){errs.push(`${f.name}: no text found (a scanned PDF? paste its text instead).`);return}
-    const ss=MODE==="faculty"?splitSections(f.name,f.text):[{src:f.name,type:mapImportType(f.name,f.text,hint),how:hint?"uploaded to this slot":"file name / content",heading:"",text:f.text,words:words(f.text).length}];ss.forEach(x=>x.meta=f.meta);
+    const ss=MODE==="faculty"?splitSections(f.name,f.text):[{src:f.name,type:mapImportType(f.name,f.text,hint),how:hint?"uploaded to this slot":"file name / content",heading:"",text:f.text,words:words(f.text).length}];ss.forEach(x=>x.meta=f.meta);if(f.meta&&f.meta.rich)assignRich(ss,f.meta.rich);
     if(hint&&ss.length===1&&ss[0].how!=="heading"&&ss[0].how!=="salutation"){ss[0].type=hint;ss[0].how="uploaded to this slot"}
     secs.push(...ss)});
   msg.innerHTML=errs.length?`<div class="notice bad">${errs.map(esc).join("<br>")}</div>`:"";
   if(!secs.length){ui.imp=null;renderImport();return}
   if(hint&&secs.length===1&&secs[0].type===hint&&!errs.length){
     if(S.example){resetMode();S.active=hint}
-    S.docs[hint]={text:secs[0].text,name:secs[0].src,ai:null,model:null,meta:secs[0].meta};ui.editing[hint]=false;save();msg.innerHTML="";renderAll();toast(`Added to ${DOCMAP[hint].label}`);return}
+    S.docs[hint]={text:secs[0].text,name:secs[0].src,ai:null,model:null,meta:secs[0].meta};buildRich(S.docs[hint],[secs[0]]);ui.editing[hint]=false;save();msg.innerHTML="";renderAll();toast(`Added to ${DOCMAP[hint].label}`);return}
   ui.imp={secs};renderImport();
 }
 function renderImport(){
@@ -803,7 +826,7 @@ function renderImport(){
   $("impApply").onclick=()=>{
     if(S.example){resetMode()}
     const grouped={};secs.forEach(s=>{if(s.type!=="skip")(grouped[s.type]=grouped[s.type]||[]).push(s)});
-    Object.entries(grouped).forEach(([k,arr])=>{S.docs[k]={text:arr.map(s=>s.text).join("\n"),name:[...new Set(arr.map(s=>s.src))].join(", "),ai:null,model:null,meta:arr[0].meta};ui.editing[k]=false});
+    Object.entries(grouped).forEach(([k,arr])=>{S.docs[k]={text:arr.map(s=>s.text).join("\n"),name:[...new Set(arr.map(s=>s.src))].join(", "),ai:null,model:null,meta:arr[0].meta};buildRich(S.docs[k],arr);ui.editing[k]=false});
     S.active=DOCS.find(d=>grouped[d.key]).key;ui.imp=null;ui.sel=null;ui.focus=null;save();
     if(!S.job.ad.trim())$("posPanel").open=true;
     renderAll();toast(`Added ${Object.keys(grouped).length} statement${Object.keys(grouped).length>1?"s":""}`);
@@ -860,9 +883,10 @@ function renderDoc(){
   const host=$("doc");
   const has=d.text.trim();
   if(!has||ui.editing[key]){host.classList.remove("anim");host.innerHTML=inputView(doc,d);wireInput(doc,d);return}
+  getModel(d);
   const L=localChecks(doc,d.text,S.job);L.ai=aiScan(d.text);
   const ai=validAi(d);const sc=scoreOf(key);const staleAi=d.ai&&!ai;
-  const sents=ai?getModel(d):L.sents;
+  const sents=getModel(d);
   const running=!!ui.running[key];
   const ak=key+"|"+(ai?ai.t:"none");const anim=ui.animKey!==ak;ui.animKey=ak;
   host.classList.toggle("anim",anim);
@@ -886,7 +910,7 @@ function renderDoc(){
     <div class="acts row" style="justify-content:flex-end">
       ${running?`<button class="btn" id="stopBtn">Stop</button>`:`<button class="btn primary" id="runBtn" ${claudeState!=="ready"?"disabled":""}>${ai?"Review again":"Review with Claude"}</button>`}
       <button class="btn" id="extBtn" title="Use your ChatGPT, Claude.ai or Gemini account">Review in ChatGPT / Claude.ai</button>
-      <button class="btn" id="editBtn">Edit text</button>
+      <button class="btn" id="editBtn">${ui.richEdit&&ui.richEdit[key]?"Stop editing":"✎ Edit"}</button>
       <button class="btn" id="replaceBtn">Replace</button>
       <button class="btn" id="dlDoc">Download .docx</button>
     </div></div>`;
@@ -903,21 +927,7 @@ function renderDoc(){
   // ---- paper with highlights
   const hotIss=ui.hot&&ui.hot.kind==="i"?ui.hot.k:null;
   const paperCls=["paper","rise",ui.showColor?"":"nocolor",ui.showIssues?"":"noissues",(ui.focus||ui.focusSent!=null)?"focus":""].join(" ");
-  let paras="",lastP=null,cur="";
-  sents.forEach(s=>{
-    if(s.p!==lastP){if(lastP!==null)paras+=`<p>${cur}</p>`;cur="";lastP=s.p}
-    const its=(sItems[s.i]||[]);const first=its[0]?itemById[its[0]]:null;
-    const on=(ui.focus&&its.includes(ui.focus))||(ui.focusSent!=null&&s.i===ui.focusSent);
-    let inner=markWords(s.t,repSet,jdSet);
-    const iss=(sIss[s.i]||[]);
-    iss.forEach(k=>{const x=ai.issues[k];if(!x.quote)return;const q=markWords(x.quote,repSet,jdSet);const pos=inner.indexOf(q);
-      if(pos>=0)inner=inner.slice(0,pos)+`<span class="${ISSUE_TYPES[x.type].cls}${hotIss===k?" u-hot":""}">`+q+"</span>"+inner.slice(pos+q.length)});
-    inner=phMark(inner);
-    const badges=s.added?`<span class="badge new">+${esc(s.item||"")}</span>`:its.map(id=>`<span class="badge" style="--h:${itemById[id].h}">${id}</span>`).join("");
-    const tip=[...its.map(id=>id+": "+itemById[id].text),...iss.map(k=>ISSUE_TYPES[ai.issues[k].type].label+": "+ai.issues[k].fix)].join("\n");
-    cur+=`<span class="s ${first&&!s.added?"hl":""} ${s.added?"added":""} ${on?"on":""} ${ui.sel===s.i?"sel":""} ${ui.flash===s.i?"flash":""}" data-s="${s.i}" tabindex="0" title="${esc(tip)}" style="${first?`--h:${first.h}`:""}">${badges}${inner}</span> `;
-  });
-  if(lastP!==null)paras+=`<p>${cur}</p>`;
+  const paras=renderRichParas(d,sents,{sItems,sIss,itemById,ai,repSet,jdSet,hotIss,flash:ui.flash});
   const flashId=ui.flash;ui.flash=null;
 
   const tgs=[["showColor","Checklist colors"],["showIssues","Writing issues"],["showRep",`Overused words (${L.overused.length})`],["showJD","Job-ad keywords"]];
@@ -927,7 +937,7 @@ function renderDoc(){
       <span><i class="sw" style="background:var(--bad)"></i>wavy: grammar</span><span><i class="sw" style="background:var(--warn)"></i>dotted: unclear</span>
       <span><i class="sw" style="background:var(--violet)"></i>double: overpromising</span><span><i class="sw" style="background:var(--sky)"></i>dashed: job-ad echo</span>
       <span><i class="sw" style="background:var(--ok)"></i>green: text you added</span><span><i class="sw" style="background:var(--warn-soft);border:1px solid var(--warn)"></i>[brackets]: fill in your detail</span></div>
-    <article class="${paperCls}" id="paper" style="--k:2">${paras}</article>${ai?`<div class="docbar glass" role="toolbar" aria-label="Undo and redo"><button class="btn small" id="barUndo" ${(ui.hist[key]||[]).length?"":"disabled"} title="Undo (Ctrl+Z)">↶ Undo</button><button class="btn small" id="barRedo" ${((ui.redo||{})[key]||[]).length?"":"disabled"} title="Redo (Ctrl+Y)">↷ Redo</button><span class="muted" style="font-size:12px">${appliedN} change${appliedN===1?"":"s"} applied</span><button class="btn small" id="barDl">Download .docx</button></div>`:""}</div>
+    ${ui.richEdit&&ui.richEdit[key]?`${editToolbarHTML()}<div class="edwrap"><div class="lineband" id="lineband"></div><article class="paper rich editing" id="editor" contenteditable="true" spellcheck="true" style="${docFontVars(d)}">${richEditorHTML(d,ui.edTable=[])}</article></div><div class="notice info" style="font-size:12.5px">Type or change formatting directly. Suggestions are paused while you edit. <b>Done editing</b> saves; text changes become Word tracked changes in the download.</div>`:`<article class="${paperCls} rich" id="paper" style="--k:2;${docFontVars(d)}">${paras}</article>`}${ai?`<div class="docbar glass" role="toolbar" aria-label="Undo and redo"><button class="btn small" id="barUndo" ${(ui.hist[key]||[]).length?"":"disabled"} title="Undo (Ctrl+Z)">↶ Undo</button><button class="btn small" id="barRedo" ${((ui.redo||{})[key]||[]).length?"":"disabled"} title="Redo (Ctrl+Y)">↷ Redo</button><span class="muted" style="font-size:12px">${appliedN} change${appliedN===1?"":"s"} applied</span><button class="btn small" id="barDl">Download .docx</button></div>`:""}</div>
     <aside class="side">${ui.sel!=null?selCard(sents,ai,sItems,sIss,itemById):""}
       <div class="seg glass" role="tablist"><button role="tab" data-side="sug" aria-selected="${ui.side==="sug"}">Suggestions${ai?`<span class="n">${sugs.length}</span>`:""}</button><button role="tab" data-side="cl" aria-selected="${ui.side==="cl"}">Checklist${ai?`<span class="n">${ai.checklist.filter(c=>c.status==="met").length}/${ai.checklist.length}</span>`:""}</button></div>
       ${ui.side==="sug"?sugPanel(ai,sugs,itemById,hist,appliedN,doc):clPanel(doc,ai,cById)}
@@ -1043,7 +1053,7 @@ function inputView(doc,d){
 }
 function wireInput(doc,d){
   const key=doc.key;
-  const setText=(t,name)=>{d.base=null;d.text=t.replace(/\u00a0/g," ").trim();d.name=name||"Pasted text";d.err=null;ui.editing[key]=false;ui.sel=null;ui.focus=null;if(S.example)S.example=false;save();renderAll()};
+  const setText=(t,name)=>{d.base=null;d.baseRich=null;d.text=t.replace(/\u00a0/g," ").trim();setDocRich(d,plainParas(d.text),null,null);d.name=name||"Pasted text";d.err=null;ui.editing[key]=false;ui.sel=null;ui.focus=null;if(S.example)S.example=false;save();renderAll()};
   $("useText").onclick=()=>{const t=$("paste").value;if(!t.trim()){$("fileMsg").innerHTML=`<div class="notice">Paste some text or upload a file first.</div>`;return}setText(t,d.text.trim()?d.name:"Pasted text")};
   if($("cancelEdit"))$("cancelEdit").onclick=()=>{ui.editing[key]=false;renderDoc()};
   if($("removeDoc"))$("removeDoc").onclick=()=>{S.docs[key]=emptyDoc();ui.editing[key]=false;save();renderAll()};
@@ -1061,7 +1071,7 @@ function wireDoc(doc,d,key){
   if($("runBtn"))$("runBtn").onclick=()=>review(key,!!d.ai);
   if($("stopBtn"))$("stopBtn").onclick=()=>ui.running[key]&&ui.running[key].abort();
   $("extBtn").onclick=()=>{ui.ext=ui.ext||{};ui.ext[key]=!ui.ext[key];renderDoc();const p=$("extPanel");if(p)p.scrollIntoView({behavior:"smooth",block:"center"})};wireExt(key);
-  $("editBtn").onclick=()=>{ui.editing[key]=true;renderDoc()};
+  $("editBtn").onclick=()=>{ui.richEdit=ui.richEdit||{};ui.richEdit[key]=!ui.richEdit[key];renderDoc();setTimeout(()=>{const e=$("editor");if(e)e.focus()},0)};wireEditor(key,d);
   $("replaceBtn").onclick=()=>{ui.editing[key]=true;renderDoc();setTimeout(()=>{const p=$("paste");if(p){p.value="";p.focus()}},0)};
   q("[data-tg]").forEach(b=>b.onclick=()=>{ui[b.dataset.tg]=!ui[b.dataset.tg];renderDoc()});
   q("[data-side]").forEach(b=>b.onclick=()=>{ui.side=b.dataset.side;renderDoc()});
@@ -1196,8 +1206,8 @@ function wireModePanels(doc,d,key){
     catch(e){if(e&&e.code==="not_granted"){claudeState="denied";renderClaudeBar()}if(!(e&&e.code==="cancelled"))toast(ERR[e&&e.code]||"Figure review failed. Try again.")}
     finally{ui.figBusy=false;renderDoc()}};
   if(MODE==="grant")wirePanel(key);
-  const dc=$("dlClean");if(dc)dc.onclick=async()=>{await saveFile(fileSafe(doc.label)+"_revised.docx",await makeDocx(d.text))};
-  const dl=$("dlDoc");if(dl)dl.onclick=async()=>{dl.disabled=true;try{await saveFile(fileSafe(doc.label)+(d.base&&d.base!==d.text?"_tracked_changes.docx":"_revised.docx"),await makeDocx(d.text,null,d.base))}finally{dl.disabled=false}};
+  const dc=$("dlClean");if(dc)dc.onclick=async()=>{await saveFile(fileSafe(doc.label)+"_revised.docx",await (getModel(d),d.rich?makeRichDocx(d,{tracked:false}):makeDocx(d.text)))};
+  const dl=$("dlDoc");if(dl)dl.onclick=async()=>{dl.disabled=true;try{await saveFile(fileSafe(doc.label)+(d.base&&d.base!==d.text?"_tracked_changes.docx":"_revised.docx"),await (getModel(d),d.rich?makeRichDocx(d,{tracked:true}):makeDocx(d.text,null,d.base)))}finally{dl.disabled=false}};
 }
 
 /* ---------------- tools: budget + funded comparison ---------------- */
@@ -1326,7 +1336,7 @@ async function downloadAll(){
   try{
     if(MODE==="refs"){if(!ALL.refs.text.trim()){toast("Add an article first");return}
       files.push({name:"article_cleaned.docx",data:await makeDocx(cleanText(ALL.refs.text))},{name:"reference_check.md",data:refsReport()})}
-    else{for(const d of DOCS){const x=S.docs[d.key];if(x.text.trim())files.push({name:fileSafe(d.label)+(x.base&&x.base!==x.text?"_tracked_changes.docx":"_revised.docx"),data:await makeDocx(x.text,null,x.base)})}
+    else{for(const d of DOCS){const x=S.docs[d.key];if(x.text.trim())files.push({name:fileSafe(d.label)+(x.base&&x.base!==x.text?"_tracked_changes.docx":"_revised.docx"),data:await (getModel(x),x.rich?makeRichDocx(x,{tracked:true}):makeDocx(x.text,null,x.base))})}
       if(!files.length){toast("Add a document first");return}
       files.push({name:"review_report.md",data:report()});if(MODE==="grant")files.push({name:"budget.csv",data:budgetCSV(ALL.budget)})}
     await saveFile(`${fileSafe(MODE_TABS.find(t=>t[0]===ALL.mode)[1])}_files.zip`,await zipFiles(files));
@@ -1416,7 +1426,7 @@ function wirePanel(key){
 
 /* ---------------- review with your own ChatGPT / Claude.ai / Gemini account (copy and paste) ---------------- */
 const EXT_SITES=[["ChatGPT","https://chatgpt.com/"],["Claude.ai","https://claude.ai/new"],["Gemini","https://gemini.google.com/app"]];
-function extPrompt(key){const doc=DOCMAP[key],d=S.docs[key];d.model=splitDoc(d.text);d.modelHash=hash(d.text);
+function extPrompt(key){const doc=DOCMAP[key],d=S.docs[key];getModel(d);
   let other="";if(MODE==="faculty"&&key==="cover"){other=["research","teaching","extension"].map(k=>S.docs[k].text.trim()?`[${DOCMAP[k].label}]\n${S.docs[k].text.trim().slice(0,3000)}`:"").filter(Boolean).join("\n\n")}
   return buildPrompt(doc,d.model,S.job,other,d)+"\n\nReply with only the JSON object in one code block, nothing else.";}
 function extParse(text){const t=String(text||"").trim();const tries=[t,(t.match(/```(?:json)?\s*([\s\S]*?)```/)||[])[1],t.slice(t.indexOf("{"),t.lastIndexOf("}")+1)];
@@ -1493,11 +1503,80 @@ function useIdea(key,id,n){const I=ui.ideas[id];const x=I&&I.items[n];if(!x)retu
   else{ai.issues[+ref].replacement=x.sentence;save();toast("Replacement updated. Accept it when ready")}
   renderDoc()}
 function redo(key){const r=ui.redo&&ui.redo[key];if(!r||!r.length)return;const d=S.docs[key];
-  (ui.hist[key]=ui.hist[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai}));
-  const v=JSON.parse(r.pop());d.text=v.text;d.model=v.model;d.ai=v.ai;d.modelHash=hash(d.text);save();renderAll();toast("Redone")}
+  (ui.hist[key]=ui.hist[key]||[]).push(JSON.stringify({text:d.text,model:d.model,ai:d.ai,paras:d.rich?d.rich.paras:null}));
+  const v=JSON.parse(r.pop());if(v.paras&&d.rich)d.rich.paras=v.paras;d.text=v.text;d.model=v.model;d.ai=v.ai;d.modelHash=hash(d.text);save();renderAll();toast("Redone")}
 document.addEventListener("keydown",e=>{if(!(e.ctrlKey||e.metaKey)||ALL.mode==="refs"||ALL.mode==="funding")return;if(e.target.closest&&e.target.closest("input,textarea,select,[contenteditable]"))return;
   const k=e.key.toLowerCase();const key=S&&S.active;if(!key||!DOCMAP[key])return;
   if(k==="z"&&!e.shiftKey){e.preventDefault();undo(key)}else if(k==="y"||(k==="z"&&e.shiftKey)){e.preventDefault();redo(key)}});
+
+
+/* ---------------- formatted documents: display, editor, import ---------------- */
+function setDocRich(d,paras,pkg,defaults){const r=splitRich(paras);d.rich={paras:r.props,pkg:pkg||null,defaults:defaults||null};d.model=r.model;d.text=richText(d);d.modelHash=hash(d.text)}
+function buildRich(d,secs){const all=secs.length&&secs.every(s=>s.rich);
+  if(all)setDocRich(d,secs.flatMap(s=>s.rich.paras),secs[0].rich.pkg,secs[0].rich.defaults);else setDocRich(d,plainParas(d.text),null,null);
+  if(d.meta)d.meta={...d.meta,rich:undefined};d.base=null;d.baseRich=null}
+function assignRich(ss,R){const P=R.paras;let j=0;const tx=i=>paraText(P[i]).replace(/\s+/g," ").trim();
+  for(const s of ss){const lines=s.text.split("\n").map(x=>x.replace(/\s+/g," ").trim()).filter(Boolean);if(!lines.length)continue;
+    let first=-1,i=j;for(;i<P.length;i++)if(tx(i)===lines[0]){first=i;break}if(first<0)continue;
+    if(s.heading){const h=s.heading.replace(/\s+/g," ").trim();for(let k=first-1;k>=j;k--){if(tx(k)===h){first=k;break}if(tx(k))break}}
+    let last=first,li=1;for(i=first+1;i<P.length&&li<lines.length;i++){if(tx(i)===lines[li]){last=i;li++}}
+    if(li<lines.length)continue;s.rich={paras:P.slice(first,last+1),pkg:R.pkg,defaults:R.defaults};j=last+1}}
+function docFontVars(d){const df=(d.rich&&d.rich.defaults)||RICH_DEFAULT;return`--docfont:'${String(df.font||"Times New Roman").replace(/'/g,"")}','Times New Roman',Times,serif;--docsize:${df.size||12}pt;`}
+function renderRichParas(d,sents,o){const byP={};sents.forEach(s=>(byP[s.p]=byP[s.p]||[]).push(s));const defs=d.rich.defaults;
+  return d.rich.paras.map((P,k)=>{const ss=byP[k]||[];const st=richParaStyle(P.f,defs);
+    if(!ss.length)return`<p class="pe" data-p="${k}" style="${st}">&#8203;</p>`;
+    return`<p data-p="${k}" class="${P.f&&P.f.list?"li":""}" style="${st}">`+ss.map(s=>richSentHTML(s,o)).join("")+`</p>`}).join("")}
+function richSentHTML(s,o){const its=(o.sItems[s.i]||[]);const first=its[0]?o.itemById[its[0]]:null;
+  const on=(ui.focus&&its.includes(ui.focus))||(ui.focusSent!=null&&s.i===ui.focusSent);const iss=(o.sIss[s.i]||[]);
+  const runs=s.runs&&s.runs.length?s.runs:[{t:s.t+(s.ws||""),rPr:"",f:{}}];const T=s.t;const ranges=[];
+  iss.forEach(k=>{const x=o.ai.issues[k];if(!x.quote)return;const pos=T.indexOf(x.quote);if(pos>=0)ranges.push([pos,pos+x.quote.length,"iss",ISSUE_TYPES[x.type].cls+(o.hotIss===k?" u-hot":"")])});
+  for(const m of T.matchAll(/[A-Za-z][A-Za-z'’-]*[A-Za-z]|[A-Za-z]/g)){const lw=m[0].toLowerCase(),k=stem(lw);
+    if(ui.showRep&&lw.length>3&&!STOP.has(lw)&&o.repSet.has(k))ranges.push([m.index,m.index+m[0].length,"mk","rep"]);
+    else if(ui.showJD&&lw.length>3&&!STOP.has(lw)&&o.jdSet.has(k))ranges.push([m.index,m.index+m[0].length,"mk","jdk"])}
+  for(const m of T.matchAll(/\b([A-Za-z]+)(\s+)\1\b/gi))if(!/^(had|that)$/i.test(m[1]))ranges.push([m.index,m.index+m[0].length,"mk","dup"]);
+  for(const m of T.matchAll(/\[[^\]\n]{1,80}\]/g))ranges.push([m.index,m.index+m[0].length,"mk","ph"]);
+  const badges=s.added?`<span class="badge new">+${esc(s.item||"")}</span>`:its.map(id=>`<span class="badge" style="--h:${o.itemById[id].h}">${id}</span>`).join("");
+  const tip=[...its.map(id=>id+": "+o.itemById[id].text),...iss.map(k=>ISSUE_TYPES[o.ai.issues[k].type].label+": "+o.ai.issues[k].fix)].join("\n");
+  const total=runs.reduce((a,r)=>a+r.t.length,0);
+  return`<span class="s ${first&&!s.added?"hl":""} ${s.added?"added":""} ${on?"on":""} ${ui.sel===s.i?"sel":""} ${o.flash===s.i?"flash":""}" data-s="${s.i}" tabindex="0" title="${esc(tip)}" style="${first?`--h:${first.h}`:""}">${badges}${richChars(runs,0,T.length,ranges)}</span>${richChars(runs,T.length,total,[])}`}
+function editToolbarHTML(){
+  return`<div class="edbar glass" role="toolbar" aria-label="Formatting">
+    <select id="edFont" title="Font" aria-label="Font">${RICH_FONTS.map(f=>`<option ${f==="Times New Roman"?"selected":""} style="font-family:'${f}'">${f}</option>`).join("")}</select>
+    <select id="edSize" title="Font size (pt)" aria-label="Font size">${RICH_SIZES.map(s=>`<option ${s===12?"selected":""}>${s}</option>`).join("")}</select>
+    <button class="edb" data-cmd="bold" title="Bold (Ctrl+B)"><b>B</b></button><button class="edb" data-cmd="italic" title="Italic (Ctrl+I)"><i>I</i></button><button class="edb" data-cmd="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+    <button class="edb" data-cmd="undo" title="Undo typing (Ctrl+Z)">↶</button><button class="edb" data-cmd="redo" title="Redo (Ctrl+Y)">↷</button>
+    <span style="flex:1"></span><button class="btn small" id="edCancel">Cancel</button><button class="btn small primary" id="edDone">Done editing</button></div>`}
+function wireEditor(key,d){const ed=$("editor");if(!ed)return;
+  try{document.execCommand("styleWithCSS",false,true)}catch(e){}
+  let saved=null;const keep=()=>{const s=getSelection();if(s.rangeCount&&ed.contains(s.anchorNode))saved=s.getRangeAt(0).cloneRange()};
+  const back=()=>{ed.focus();if(saved){const s=getSelection();s.removeAllRanges();s.addRange(saved)}};
+  ["mouseup","keyup","blur"].forEach(ev=>ed.addEventListener(ev,keep));
+  // focus aids: band on the caret's line, current paragraph bright and the rest dim, fresh typing tinted for a moment
+  const wrap=ed.parentElement,band=$("lineband");
+  const curP=()=>{const s=getSelection();if(!s.rangeCount||!ed.contains(s.anchorNode))return null;const el=s.anchorNode.nodeType===1?s.anchorNode:s.anchorNode.parentElement;return el&&el.closest?el.closest("#editor > p"):null};
+  const upd=()=>{if(!document.body.contains(ed)){document.removeEventListener("selectionchange",upd);return}
+    const s=getSelection();if(!s.rangeCount||!ed.contains(s.anchorNode)){band.style.display="none";ed.classList.remove("focusing");return}
+    const r=s.getRangeAt(0).cloneRange();r.collapse(true);let rect=r.getClientRects()[0];const p=curP();
+    if(!rect||!rect.height){const el=p||ed;rect=el.getBoundingClientRect();const lh=parseFloat(getComputedStyle(el).lineHeight)||22;rect={top:rect.top,height:Math.min(rect.height,lh)}}
+    const wr=wrap.getBoundingClientRect();band.style.display="block";band.style.top=(rect.top-wr.top-3)+"px";band.style.height=(rect.height+6)+"px";
+    ed.querySelectorAll(":scope > p.cur").forEach(x=>{if(x!==p)x.classList.remove("cur")});if(p)p.classList.add("cur");ed.classList.add("focusing")};
+  if(window.__dlSel)document.removeEventListener("selectionchange",window.__dlSel);window.__dlSel=upd;document.addEventListener("selectionchange",upd);
+  ed.addEventListener("input",()=>{const p=curP();if(p){p.classList.add("typing");clearTimeout(p._t);p._t=setTimeout(()=>p.classList.remove("typing"),1400)}upd()});
+  window.addEventListener("scroll",()=>{if(document.body.contains(ed))upd()},{passive:true});
+  document.querySelectorAll(".edb").forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>{back();document.execCommand(b.dataset.cmd)}});
+  $("edFont").onchange=e=>{back();document.execCommand("fontName",false,e.target.value)};
+  $("edSize").onchange=e=>{back();document.execCommand("fontSize",false,"7");const pt=e.target.value+"pt";
+    ed.querySelectorAll('font[size="7"]').forEach(f=>{const sp=document.createElement("span");sp.style.fontSize=pt;while(f.firstChild)sp.appendChild(f.firstChild);f.replaceWith(sp)});
+    ed.querySelectorAll("[style]").forEach(el=>{if(/xxx-large|-webkit-xxx-large/.test(el.style.fontSize))el.style.fontSize=pt})};
+  ed.addEventListener("keyup",()=>{const s=getSelection();if(!s.anchorNode)return;const el=(s.anchorNode.nodeType===1?s.anchorNode:s.anchorNode.parentElement);if(!el||!ed.contains(el))return;
+    const cs=getComputedStyle(el);const f=cssFont(cs.fontFamily);const o=[...$("edFont").options].find(x=>x.value===f);if(o)$("edFont").value=f;const pt=cssSizePt(cs.fontSize);if(pt&&RICH_SIZES.includes(pt))$("edSize").value=pt});
+  $("edCancel").onclick=()=>{ui.richEdit[key]=false;renderDoc()};
+  $("edDone").onclick=()=>{const paras=richFromEditor(ed,ui.edTable||[],d.rich.paras);const newText=paras.map(paraText).join("\n");
+    snapshot(key);
+    if(newText===d.text&&paras.length===d.rich.paras.length){const byP={};d.model.forEach(s=>(byP[s.p]=byP[s.p]||[]).push(s));
+      paras.forEach((P,k)=>{let off=0;(byP[k]||[]).forEach(s=>{const len=(s.t+(s.ws||"")).length;s.runs=sliceRuns(P.runs,off,off+len);off+=len})})}
+    else{const keepPkg=d.rich.pkg,keepDef=d.rich.defaults;setDocRich(d,paras,keepPkg,keepDef)}
+    ui.richEdit[key]=false;save();renderAll();toast(newText===d.text?"Formatting saved":"Edits saved. Download .docx shows them as tracked changes")}}
 
 /* ---------------- report ---------------- */
 function report(){
